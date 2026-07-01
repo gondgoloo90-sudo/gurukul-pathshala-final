@@ -1,0 +1,10 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#FEE2E2"/>
+  <rect x="50" y="100" width="700" height="350" fill="#DC2626" rx="20"/>
+  <circle cx="200" cy="280" r="50" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="350" cy="280" r="50" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="500" cy="280" r="50" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="650" cy="280" r="50" fill="#FFFFFF" opacity="0.3"/>
+  <text x="400" y="520" font-family="Arial" font-size="32" fill="#DC2626" text-anchor="middle">Group Photo</text>
+  <text x="400" y="560" font-family="Arial" font-size="20" fill="#991B1B" text-anchor="middle">Gallery Image Placeholder</text>
+</svg>

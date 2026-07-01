@@ -1,0 +1,9 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#FEF3C7"/>
+  <rect x="100" y="150" width="600" height="300" fill="#F59E0B" rx="10"/>
+  <circle cx="250" cy="300" r="60" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="400" cy="300" r="60" fill="#FFFFFF" opacity="0.3"/>
+  <circle cx="550" cy="300" r="60" fill="#FFFFFF" opacity="0.3"/>
+  <text x="400" y="520" font-family="Arial" font-size="32" fill="#F59E0B" text-anchor="middle">Art Class</text>
+  <text x="400" y="560" font-family="Arial" font-size="20" fill="#B45309" text-anchor="middle">Gallery Image Placeholder</text>
+</svg>
