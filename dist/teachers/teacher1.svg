@@ -1,0 +1,8 @@
+<svg width="400" height="500" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="500" fill="#FEF3C7"/>
+  <circle cx="200" cy="180" r="80" fill="#F59E0B"/>
+  <circle cx="200" cy="180" r="60" fill="#FDE68A"/>
+  <ellipse cx="200" cy="320" rx="100" ry="120" fill="#F59E0B"/>
+  <text x="200" y="420" font-family="Arial" font-size="24" fill="#F59E0B" text-anchor="middle">Teacher</text>
+  <text x="200" y="450" font-family="Arial" font-size="16" fill="#B45309" text-anchor="middle">Photo Placeholder</text>
+</svg>

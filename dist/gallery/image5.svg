@@ -1,0 +1,9 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#FCE7F3"/>
+  <circle cx="400" cy="300" r="150" fill="#EC4899"/>
+  <circle cx="350" cy="280" r="30" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="450" cy="280" r="30" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="400" cy="350" r="40" fill="#FFFFFF" opacity="0.5"/>
+  <text x="400" y="500" font-family="Arial" font-size="32" fill="#EC4899" text-anchor="middle">Sports Day</text>
+  <text x="400" y="540" font-family="Arial" font-size="20" fill="#9D174D" text-anchor="middle">Gallery Image Placeholder</text>
+</svg>

@@ -311,3 +311,27 @@ This website template is free to use for your school.
 ---
 
 **Made with ❤️ for Gurukul Pathshala**
+
+
+## Day 4 Update – Enterprise Backend Ready
+
+This version adds a backend-ready service layer, validation helpers, persisted login role, and production build verification. The project still works fully as a local demo, but it is now easier to connect with Firebase, Supabase, or a custom Node.js backend.
+
+### Important Day 4 Files
+
+- `src/services/api.ts` – central API client for future backend
+- `src/lib/validators.ts` – common form validation helpers
+- `docs/DAY4_BACKEND_READY_PLAN.md` – next backend roadmap
+
+### Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+### Production Build
+
+```bash
+npm run build
+```

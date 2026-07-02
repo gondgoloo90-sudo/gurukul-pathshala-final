@@ -1,0 +1,10 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#E0E7FF"/>
+  <rect x="50" y="150" width="700" height="300" fill="#6366F1" rx="10"/>
+  <rect x="100" y="200" width="120" height="200" fill="#FFFFFF" opacity="0.3"/>
+  <rect x="240" y="200" width="120" height="200" fill="#FFFFFF" opacity="0.3"/>
+  <rect x="380" y="200" width="120" height="200" fill="#FFFFFF" opacity="0.3"/>
+  <rect x="520" y="200" width="120" height="200" fill="#FFFFFF" opacity="0.3"/>
+  <text x="400" y="520" font-family="Arial" font-size="32" fill="#6366F1" text-anchor="middle">Students in Class</text>
+  <text x="400" y="560" font-family="Arial" font-size="20" fill="#3730A3" text-anchor="middle">Gallery Image Placeholder</text>
+</svg>

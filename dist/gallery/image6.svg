@@ -1,0 +1,7 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="600" fill="#FEF3C7"/>
+  <rect x="100" y="100" width="600" height="350" fill="#F59E0B" rx="20"/>
+  <polygon points="400,150 450,250 550,250 470,320 500,420 400,360 300,420 330,320 250,250 350,250" fill="#FFFFFF" opacity="0.4"/>
+  <text x="400" y="520" font-family="Arial" font-size="32" fill="#F59E0B" text-anchor="middle">Annual Function</text>
+  <text x="400" y="560" font-family="Arial" font-size="20" fill="#B45309" text-anchor="middle">Gallery Image Placeholder</text>
+</svg>

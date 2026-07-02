@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardHome from './DashboardHome';
 import DashboardShell from './DashboardShell';
 import LoginPage from './LoginPage';
@@ -11,8 +11,16 @@ interface ErpAppProps {
 }
 
 const ErpApp = ({ onBackHome }: ErpAppProps) => {
-  const [role, setRole] = useState<UserRole | null>(null);
+  const [role, setRole] = useState<UserRole | null>(() => {
+    const savedRole = window.localStorage.getItem('gurukul-active-role') as UserRole | null;
+    return savedRole === 'admin' || savedRole === 'teacher' || savedRole === 'student' ? savedRole : null;
+  });
   const [activePage, setActivePage] = useState<ErpPage>('dashboard');
+
+  useEffect(() => {
+    if (role) window.localStorage.setItem('gurukul-active-role', role);
+    else window.localStorage.removeItem('gurukul-active-role');
+  }, [role]);
 
   if (!role) {
     return <LoginPage onLogin={(nextRole) => { setRole(nextRole); setActivePage('dashboard'); }} onBackHome={onBackHome} />;

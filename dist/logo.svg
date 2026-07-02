@@ -1,0 +1,21 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#DC2626"/>
+  
+  <!-- Inner Circle -->
+  <circle cx="100" cy="100" r="80" fill="#FFFFFF"/>
+  
+  <!-- Book Icon -->
+  <path d="M100 50 L100 50 C85 50 70 60 70 75 L70 140 C70 155 85 165 100 165 L100 165 C115 165 130 155 130 140 L130 75 C130 60 115 50 100 50 Z" fill="#DC2626"/>
+  <path d="M100 50 L100 165" stroke="#FFFFFF" stroke-width="2"/>
+  
+  <!-- Sun/Rays -->
+  <circle cx="100" cy="35" r="8" fill="#FCD34D"/>
+  <line x1="100" y1="20" x2="100" y2="10" stroke="#FCD34D" stroke-width="3"/>
+  <line x1="115" y1="25" x2="122" y2="18" stroke="#FCD34D" stroke-width="3"/>
+  <line x1="125" y1="35" x2="135" y2="35" stroke="#FCD34D" stroke-width="3"/>
+  <line x1="115" y1="45" x2="122" y2="52" stroke="#FCD34D" stroke-width="3"/>
+  
+  <!-- Text -->
+  <text x="100" y="190" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#DC2626" text-anchor="middle">GP</text>
+</svg>
