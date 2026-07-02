@@ -129,7 +129,7 @@ const DashboardShell = ({ role, children, activePage, onNavigate, onLogout, onBa
               <div className="hidden xl:flex flex-1 max-w-md mx-6">
                 <label className="w-full relative">
                   <span className="absolute left-4 top-3 text-slate-400">🔍</span>
-                  <input className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" placeholder="Search students, fees, notices..." />
+                  <input className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" placeholder="Search students, fees, reports, notices..." />
                 </label>
               </div>
 
@@ -154,8 +154,8 @@ const DashboardShell = ({ role, children, activePage, onNavigate, onLogout, onBa
           </header>
           <main className="p-4 sm:p-8">{children}</main>
           <footer className="px-4 sm:px-8 pb-8 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-            <span>Gurukul ERP Version 1.0 • Day 1 Premium UI</span>
-            <span>Powered by Gurukul Pathshala © 2026</span>
+            <span>Gurukul ERP Version 2.1 • Enterprise Dashboard Polish</span>
+            <span>Client Demo Ready • Gurukul Pathshala © 2026</span>
           </footer>
         </div>
       </div>

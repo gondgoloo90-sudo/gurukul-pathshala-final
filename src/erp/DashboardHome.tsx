@@ -22,21 +22,67 @@ const getGreeting = () => {
   return 'Good Evening 🌙';
 };
 
-const ProgressRing = ({ value }: { value: number }) => {
+const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+
+const ProgressRing = ({ value, label }: { value: number; label: string }) => {
   const background = `conic-gradient(#dc2626 ${value * 3.6}deg, #e2e8f0 0deg)`;
   return (
-    <div className="w-28 h-28 rounded-full p-3" style={{ background }}>
-      <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center">
-        <span className="text-2xl font-black">{value}%</span>
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-28 h-28 rounded-full p-3" style={{ background }}>
+        <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center">
+          <span className="text-2xl font-black">{value}%</span>
+        </div>
       </div>
+      <p className="text-sm font-black text-slate-500 dark:text-slate-400">{label}</p>
     </div>
   );
+};
+
+const moduleHealthByRole: Record<UserRole, { label: string; value: number; status: string }[]> = {
+  admin: [
+    { label: 'Admission', value: 92, status: '24 inquiries' },
+    { label: 'Fees', value: 82, status: money(840000) },
+    { label: 'Attendance', value: 94, status: 'Today marked' },
+    { label: 'Reports', value: 88, status: 'Print ready' },
+  ],
+  teacher: [
+    { label: 'Attendance', value: 96, status: '6 classes' },
+    { label: 'Homework', value: 78, status: '18 tasks' },
+    { label: 'Marks', value: 84, status: '3 tests' },
+    { label: 'Messages', value: 70, status: '9 threads' },
+  ],
+  student: [
+    { label: 'Attendance', value: 92, status: 'Good' },
+    { label: 'Homework', value: 75, status: '2 pending' },
+    { label: 'Result', value: 88, status: 'A grade' },
+    { label: 'Fees', value: 100, status: 'No dues' },
+  ],
+};
+
+const pipelineByRole: Record<UserRole, { title: string; meta: string; icon: string }[]> = {
+  admin: [
+    { title: 'Admission Follow-up', meta: '8 parents to call today', icon: '☎️' },
+    { title: 'Fee Collection Review', meta: 'Pending list ready', icon: '💳' },
+    { title: 'Teacher Meeting', meta: '3:00 PM in office', icon: '👥' },
+  ],
+  teacher: [
+    { title: 'Class 7-A Attendance', meta: 'Mark before 10:30 AM', icon: '✅' },
+    { title: 'Check Homework', meta: '22 submissions received', icon: '📘' },
+    { title: 'Enter Unit Test Marks', meta: 'Math test pending', icon: '🏆' },
+  ],
+  student: [
+    { title: 'Complete Math Homework', meta: 'Due tomorrow', icon: '📝' },
+    { title: 'Science Project', meta: 'Submit file by Friday', icon: '🔬' },
+    { title: 'Library Book Return', meta: 'Return tomorrow', icon: '📚' },
+  ],
 };
 
 const DashboardHome = ({ role }: DashboardHomeProps) => {
   const stats = dashboardStats[role];
   const bars = chartBars[role];
   const greeting = useMemo(() => getGreeting(), []);
+  const moduleHealth = moduleHealthByRole[role];
+  const pipeline = pipelineByRole[role];
 
   return (
     <div className="space-y-8">
@@ -45,16 +91,21 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
           <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="w-56 h-56 object-contain" />
         </div>
         <div className="absolute -right-16 -bottom-20 text-[14rem] opacity-10">🎓</div>
-        <div className="relative z-10 grid lg:grid-cols-[1fr_auto] gap-6 items-center">
+        <div className="relative z-10 grid xl:grid-cols-[1fr_440px] gap-6 items-center">
           <div className="max-w-3xl">
-            <p className="font-bold text-red-100 mb-2">{greeting} • Welcome to Gurukul ERP</p>
-            <h2 className="text-3xl sm:text-5xl font-black mb-3">Hello, {roleLabels[role]} 👋</h2>
-            <p className="text-red-100 text-base sm:text-lg">Manage school work faster with analytics, quick actions, responsive layout, live header, dark mode and premium dashboard UI.</p>
+            <p className="font-bold text-red-100 mb-2">{greeting} • Gurukul Pathshala ERP 2.1</p>
+            <h2 className="text-3xl sm:text-5xl font-black mb-3">{roleLabels[role]} Control Center</h2>
+            <p className="text-red-100 text-base sm:text-lg">Premium role-based dashboard with live summary cards, module health, quick actions, reports and client-demo ready workflow.</p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <button className="rounded-2xl bg-white text-red-700 px-5 py-3 font-black shadow-xl hover:bg-red-50 transition-colors">Generate Daily Report</button>
+              <button className="rounded-2xl bg-white/10 border border-white/20 px-5 py-3 font-black hover:bg-white/20 transition-colors">Open Quick Actions</button>
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-2 gap-3 text-center">
             <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">98%</b><p className="text-xs text-red-100">System Health</p></div>
-            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">24</b><p className="text-xs text-red-100">Tasks</p></div>
-            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10 col-span-2 sm:col-span-1"><b className="text-2xl">Live</b><p className="text-xs text-red-100">Dashboard</p></div>
+            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">Live</b><p className="text-xs text-red-100">Role Portal</p></div>
+            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">PDF</b><p className="text-xs text-red-100">Reports Ready</p></div>
+            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">Sync</b><p className="text-xs text-red-100">Demo Data</p></div>
           </div>
         </div>
       </section>
@@ -78,9 +129,9 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
               <h3 className="text-xl font-black">Performance Analytics</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Weekly activity and collection trend</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Weekly operations trend for attendance, fees, homework and activity.</p>
             </div>
-            <button className="rounded-2xl bg-red-50 dark:bg-red-950 text-red-600 px-4 py-2 font-black text-sm">Export Report</button>
+            <button onClick={() => window.print()} className="rounded-2xl bg-red-50 dark:bg-red-950 text-red-600 px-4 py-2 font-black text-sm">Print Dashboard</button>
           </div>
           <div className="h-72 flex items-end gap-3 sm:gap-5 border-b border-slate-200 dark:border-slate-800 pb-4">
             {bars.map((bar) => (
@@ -90,13 +141,50 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
               </div>
             ))}
           </div>
+          <div className="grid sm:grid-cols-3 gap-3 mt-5">
+            {['Revenue Growth +18%', 'Attendance Stable 94%', 'Reports Export Ready'].map((item) => <div key={item} className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 font-black text-sm">✅ {item}</div>)}
+          </div>
         </div>
 
+        <div className="bg-white/90 dark:bg-slate-900/90 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+          <h3 className="text-xl font-black mb-2">Module Health</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Delivery readiness by module</p>
+          <div className="space-y-4">
+            {moduleHealth.map((item) => (
+              <div key={item.label}>
+                <div className="flex justify-between text-sm font-black mb-2"><span>{item.label}</span><span>{item.status}</span></div>
+                <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-gradient-to-r from-red-600 to-orange-400" style={{ width: `${item.value}%` }} /></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid xl:grid-cols-3 gap-6">
         <div className="bg-white/90 dark:bg-slate-900/90 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
           <h3 className="text-xl font-black mb-2">Attendance Health</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Current day performance score</p>
-          <ProgressRing value={role === 'student' ? 92 : role === 'teacher' ? 96 : 94} />
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Current performance score</p>
+          <ProgressRing value={role === 'student' ? 92 : role === 'teacher' ? 96 : 94} label="Overall strength" />
           <p className="mt-6 font-bold text-green-600">Strong performance this week</p>
+        </div>
+
+        <div className="xl:col-span-2 bg-white/90 dark:bg-slate-900/90 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-black">Today Priority Pipeline</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Role-wise work items for a professional demo flow.</p>
+            </div>
+            <button className="text-red-600 font-black text-sm">View Plan</button>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {pipeline.map((item) => (
+              <div key={item.title} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5 border border-slate-100 dark:border-slate-700">
+                <span className="text-4xl">{item.icon}</span>
+                <h4 className="text-lg font-black mt-4">{item.title}</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{item.meta}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -147,9 +235,10 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
         </div>
         <div className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 border border-slate-200 dark:border-slate-800">
           <span className="text-4xl">🚀</span>
-          <h3 className="font-black text-lg mt-4">ERP Control Center</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Admission, fees, marks, notices and daily operations are ready for client demo with connected data flow.</p>
-          <div className="mt-5 h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full w-4/5 bg-gradient-to-r from-red-600 to-orange-400" /></div>
+          <h3 className="font-black text-lg mt-4">ERP Readiness</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Admission, fees, marks, notices and daily operations are polished for client demo with connected data flow.</p>
+          <div className="mt-5 h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full w-[92%] bg-gradient-to-r from-red-600 to-orange-400" /></div>
+          <p className="text-xs font-black text-slate-500 mt-2">92% client demo ready</p>
         </div>
       </section>
     </div>
