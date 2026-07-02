@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { schoolConfig } from '../config/schoolData';
 import type { UserRole } from './types';
-import { roleLabels } from './erpData';
+import { roleLabels, roleSubtitles } from './erpData';
 
 interface DashboardShellProps {
   role: UserRole;
@@ -10,62 +10,141 @@ interface DashboardShellProps {
   onBackHome: () => void;
 }
 
-const menuByRole: Record<UserRole, string[]> = {
-  admin: ['Dashboard', 'Students', 'Teachers', 'Attendance', 'Fees', 'Results', 'Notices', 'Settings'],
-  teacher: ['Dashboard', 'My Classes', 'Attendance', 'Homework', 'Marks', 'Messages', 'Calendar'],
-  student: ['Dashboard', 'Homework', 'Attendance', 'Result', 'Fees', 'Notices', 'Profile'],
+const menuByRole: Record<UserRole, { label: string; icon: string; children?: string[] }[]> = {
+  admin: [
+    { label: 'Dashboard', icon: '🏠' },
+    { label: 'Student Management', icon: '🎓', children: ['All Students', 'Admission', 'Promote Student'] },
+    { label: 'Teacher Management', icon: '👩‍🏫' },
+    { label: 'Attendance', icon: '✅' },
+    { label: 'Fee Management', icon: '💰' },
+    { label: 'Examination', icon: '📊' },
+    { label: 'Library', icon: '📚' },
+    { label: 'Transport', icon: '🚌' },
+    { label: 'Notice Board', icon: '📢' },
+    { label: 'Documents', icon: '📁' },
+    { label: 'Settings', icon: '⚙️' },
+  ],
+  teacher: [
+    { label: 'Dashboard', icon: '🏠' },
+    { label: 'My Classes', icon: '📚' },
+    { label: 'Attendance', icon: '✅' },
+    { label: 'Homework', icon: '📝' },
+    { label: 'Marks', icon: '🏆' },
+    { label: 'Messages', icon: '💬' },
+    { label: 'Calendar', icon: '🗓️' },
+    { label: 'Settings', icon: '⚙️' },
+  ],
+  student: [
+    { label: 'Dashboard', icon: '🏠' },
+    { label: 'Homework', icon: '📘' },
+    { label: 'Attendance', icon: '✅' },
+    { label: 'Result', icon: '🏆' },
+    { label: 'Fees', icon: '💳' },
+    { label: 'Notices', icon: '📢' },
+    { label: 'Profile', icon: '👤' },
+  ],
 };
 
 const DashboardShell = ({ role, children, onLogout, onBackHome }: DashboardShellProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [now, setNow] = useState(new Date());
   const menu = menuByRole[role];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const formattedDate = useMemo(() => now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), [now]);
+  const formattedTime = useMemo(() => now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }), [now]);
 
   return (
     <div className={darkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white">
-        {isSidebarOpen && <button aria-label="Close sidebar" onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black/40 z-30 lg:hidden" />}
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-red-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 text-slate-900 dark:text-white">
+        {isSidebarOpen && <button aria-label="Close sidebar" onClick={() => setIsSidebarOpen(false)} className="fixed inset-0 bg-black/50 z-30 lg:hidden" />}
 
-        <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="h-20 flex items-center gap-3 px-6 border-b border-slate-200 dark:border-slate-800">
-            <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="w-12 h-12 object-contain rounded-xl bg-white" />
+        <aside className={`fixed inset-y-0 left-0 z-40 w-80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800 transform transition-transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="h-24 flex items-center gap-4 px-5 border-b border-slate-200 dark:border-slate-800">
+            <div className="w-16 h-16 rounded-3xl bg-white shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden">
+              <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="w-14 h-14 object-contain" />
+            </div>
             <div>
-              <h2 className="font-black leading-tight">Gurukul ERP</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{roleLabels[role]} Portal</p>
+              <h2 className="font-black leading-tight text-lg">Gurukul ERP</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{roleSubtitles[role]}</p>
             </div>
           </div>
-          <nav className="p-4 space-y-2">
+
+          <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-14rem)]">
             {menu.map((item, index) => (
-              <button key={item} className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left font-semibold transition-colors ${index === 0 ? 'bg-red-600 text-white shadow-lg' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}>
-                <span>{['🏠','🎓','👩‍🏫','✅','💳','🏆','📢','⚙️'][index] || '📌'}</span>
-                {item}
-              </button>
+              <div key={item.label}>
+                <button className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left font-bold transition-all ${index === 0 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/25' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}>
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.children && <span className="text-xs opacity-70">▾</span>}
+                </button>
+                {index === 1 && item.children && role === 'admin' && (
+                  <div className="ml-9 mt-1 mb-2 space-y-1">
+                    {item.children.map((child) => (
+                      <button key={child} className="block w-full text-left px-3 py-2 text-sm rounded-xl text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800">
+                        {child}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-800">
-            <button onClick={onBackHome} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-semibold mb-2">Public Website</button>
-            <button onClick={onLogout} className="w-full rounded-2xl bg-red-50 dark:bg-red-950 text-red-600 px-4 py-3 font-bold">Logout</button>
+
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95">
+            <button onClick={onBackHome} className="w-full rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-bold mb-2 hover:bg-slate-200 dark:hover:bg-slate-700">🌐 Public Website</button>
+            <button onClick={onLogout} className="w-full rounded-2xl bg-red-50 dark:bg-red-950 text-red-600 px-4 py-3 font-black hover:bg-red-100 dark:hover:bg-red-900">🚪 Logout</button>
           </div>
         </aside>
 
-        <div className="lg:pl-72">
-          <header className="sticky top-0 z-20 h-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden rounded-xl bg-slate-100 dark:bg-slate-800 p-3">☰</button>
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                <h1 className="text-xl sm:text-2xl font-black">{roleLabels[role]} Dashboard</h1>
+        <div className="lg:pl-80">
+          <header className="sticky top-0 z-20 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden rounded-2xl bg-slate-100 dark:bg-slate-800 p-3">☰</button>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">{formattedDate} • {formattedTime}</p>
+                  <h1 className="text-xl sm:text-3xl font-black truncate">{roleLabels[role]} Dashboard</h1>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button onClick={() => setDarkMode(!darkMode)} className="rounded-xl bg-slate-100 dark:bg-slate-800 px-3 sm:px-4 py-3 font-semibold">{darkMode ? '☀️' : '🌙'}</button>
-              <div className="hidden sm:flex items-center gap-3 rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-2">
-                <span className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center font-bold">{roleLabels[role][0]}</span>
-                <span className="font-bold">{roleLabels[role]}</span>
+
+              <div className="hidden xl:flex flex-1 max-w-md mx-6">
+                <label className="w-full relative">
+                  <span className="absolute left-4 top-3 text-slate-400">🔍</span>
+                  <input className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" placeholder="Search students, fees, notices..." />
+                </label>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button className="hidden sm:flex rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-bold">🔔</button>
+                <button className="hidden sm:flex rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-bold">✉️</button>
+                <button onClick={() => setDarkMode(!darkMode)} className="rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-bold">{darkMode ? '☀️' : '🌙'}</button>
+                <div className="relative">
+                  <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-3 rounded-2xl bg-slate-100 dark:bg-slate-800 pl-2 pr-4 py-2">
+                    <span className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-red-800 text-white flex items-center justify-center font-black">{roleLabels[role][0]}</span>
+                    <span className="hidden sm:block font-black">{roleLabels[role]}</span>
+                  </button>
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-3 w-56 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2">
+                      {['My Profile', 'Settings', 'Change Password'].map((item) => <button key={item} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">{item}</button>)}
+                      <button onClick={onLogout} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-950 text-red-600 font-black">Logout</button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </header>
           <main className="p-4 sm:p-8">{children}</main>
+          <footer className="px-4 sm:px-8 pb-8 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <span>Gurukul ERP Version 1.0 • Day 1 Premium UI</span>
+            <span>Powered by Gurukul Pathshala © 2026</span>
+          </footer>
         </div>
       </div>
     </div>

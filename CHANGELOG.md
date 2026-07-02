@@ -1,35 +1,29 @@
-# CHANGELOG - Day 1 UI
+# CHANGELOG - Day 1 Premium UI v2
 
 ## Added
-- Separate ERP/Login system without removing the existing public school website.
-- Premium Login Page with Admin, Teacher and Student role selection.
-- Admin Dashboard, Teacher Dashboard and Student Dashboard using reusable data.
-- Dashboard Sidebar with role-based menus.
-- Top Header with profile area, mobile menu and dark mode toggle.
-- Responsive dashboard layout for desktop, tablet and mobile.
-- Modern UI cards, quick actions, activity feed and placeholder sections for Day 2 features.
+- Premium ERP/Login polish without changing the public school website.
+- Bigger professional logo card on login page.
+- Cleaner role cards with selected checkmark and demo email values.
+- Premium dashboard sidebar with nested Student Management menu.
+- Live date and time in top header.
+- Search bar, notification button, messages button and profile dropdown.
+- Footer with ERP version information.
+- 8 KPI cards per role for Admin, Teacher and Student dashboards.
+- Analytics bar chart, attendance health ring, notices and timetable widgets.
+- Better Quick Actions section with 6 role-based actions.
+- Professional glass/card design, gradients, shadows and hover effects.
 
 ## Modified
-- `src/App.tsx`
-  - Added ERP view switch.
-  - Added ERP Login button in desktop and mobile header.
-  - Kept public homepage sections safe and unchanged.
-  - Updated logo path to `/logo.svg.png` where required.
-
-## Created
-- `src/erp/ErpApp.tsx`
 - `src/erp/LoginPage.tsx`
 - `src/erp/DashboardShell.tsx`
 - `src/erp/DashboardHome.tsx`
 - `src/erp/erpData.ts`
 - `src/erp/types.ts`
 
-## Test
-- `npm install` completed successfully.
-- `npm run build` completed successfully with no TypeScript/build errors.
+## Build Status
+- `npm run build` tested successfully.
 
-## How to use
-- Open public website normally.
-- Click `ERP Login` in the header.
-- Select Admin, Teacher or Student.
-- Click login to open the matching dashboard.
+## Notes
+- Public website remains separate and safe.
+- ERP remains under login/dashboard flow.
+- Day 2 can now add Student Management, Teacher Management, Attendance, Fees and Results modules.
