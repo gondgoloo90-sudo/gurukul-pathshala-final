@@ -88,7 +88,7 @@ const Header = () => {
           <div className="flex items-center space-x-3">
             <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
               <img 
-                src={schoolConfig.logo.src} 
+                src="/logo.png" 
                 alt={schoolConfig.logo.alt}
                 className="w-12 h-12 object-contain"
                 onError={(e) => {
