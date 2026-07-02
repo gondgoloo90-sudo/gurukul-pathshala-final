@@ -57,3 +57,13 @@
 - Notice Board upgraded with create, edit and delete notice workflow.
 - Examination, Library, Transport, Homework and Result modules now show professional working module screens.
 - All updates are frontend-only demo state for now and ready for future backend/database integration.
+
+## Day 2 Functional v3
+
+- Homework module is now working with add, edit, delete, search, due date, status, submissions and instruction UI.
+- Marks module is now working with add/edit/delete marks, percentage calculation, grade calculation and report-card preview.
+- Messages module is now working with inbox, unread count, message preview, compose/send and delete UI.
+- Calendar module is now working with monthly calendar, events, holidays, exams, meetings, add/edit/delete event UI.
+- Settings module is now working with school profile, session, language, theme and user security settings UI.
+- Sidebar pages for Homework, Marks, Messages, Calendar and Settings now open functional pages instead of generic placeholder cards.
+- Production build tested successfully with `npm run build`.

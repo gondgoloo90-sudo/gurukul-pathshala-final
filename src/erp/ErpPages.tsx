@@ -321,11 +321,142 @@ const NoticeForm = ({ notice, onClose, onSave }: { notice: Notice; onClose: () =
   return <Modal title={notice.title ? 'Edit Notice' : 'Create Notice'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Notice ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} /><TextInput label="Audience" value={form.audience} onChange={(value) => setForm({ ...form, audience: value })} /><SelectInput label="Priority" value={form.priority} onChange={(value) => setForm({ ...form, priority: value as Notice['priority'] })} options={['High', 'Medium', 'Normal']} /><TextInput label="Date" value={form.date} onChange={(value) => setForm({ ...form, date: value })} /><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Message</span><textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={4} /></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Notice</PrimaryButton></div></form></Modal>;
 };
 
-const ExaminationPage = () => <ModuleWithTable title="Examination" subtitle="Exam schedule, marks entry and result preparation." icon="📊" rows={['Unit Test - Class 8', 'Half Yearly Exam', 'Result Approval', 'Report Card Print']} />;
+
+type Homework = {
+  id: string;
+  title: string;
+  subject: string;
+  className: string;
+  teacher: string;
+  dueDate: string;
+  status: 'Draft' | 'Assigned' | 'Checked';
+  submissions: number;
+  description: string;
+};
+
+type MarkRecord = {
+  id: string;
+  student: string;
+  className: string;
+  exam: string;
+  math: number;
+  science: number;
+  english: number;
+  computer: number;
+};
+
+type MessageItem = {
+  id: string;
+  from: string;
+  to: string;
+  subject: string;
+  message: string;
+  time: string;
+  unread: boolean;
+};
+
+type CalendarEvent = {
+  id: string;
+  title: string;
+  type: 'Holiday' | 'Exam' | 'Meeting' | 'Event';
+  date: string;
+  time: string;
+  audience: string;
+};
+
+const initialHomework: Homework[] = [
+  { id: 'HW001', title: 'Algebra Practice Set', subject: 'Mathematics', className: 'Class 8', teacher: 'Neha Mishra', dueDate: '08 Jul 2026', status: 'Assigned', submissions: 32, description: 'Solve questions 1 to 20 from chapter Algebra and upload notebook photo.' },
+  { id: 'HW002', title: 'Science Project Notes', subject: 'Science', className: 'Class 7', teacher: 'Amit Kumar', dueDate: '10 Jul 2026', status: 'Assigned', submissions: 24, description: 'Prepare a short note on renewable energy with diagram.' },
+  { id: 'HW003', title: 'English Essay', subject: 'English', className: 'Class 6', teacher: 'Priya Singh', dueDate: '12 Jul 2026', status: 'Draft', submissions: 0, description: 'Essay topic: My School, minimum 250 words.' },
+];
+
+const initialMarks: MarkRecord[] = [
+  { id: 'MRK001', student: 'Aarav Sharma', className: 'Class 8-A', exam: 'Unit Test 1', math: 88, science: 91, english: 84, computer: 96 },
+  { id: 'MRK002', student: 'Ananya Singh', className: 'Class 7-B', exam: 'Unit Test 1', math: 81, science: 89, english: 92, computer: 90 },
+  { id: 'MRK003', student: 'Kabir Verma', className: 'Class 6-A', exam: 'Unit Test 1', math: 76, science: 83, english: 79, computer: 88 },
+];
+
+const initialMessages: MessageItem[] = [
+  { id: 'MSG001', from: 'Admin Office', to: 'All Teachers', subject: 'PTM Preparation', message: 'Please prepare student progress files before PTM.', time: '10:20 AM', unread: true },
+  { id: 'MSG002', from: 'Neha Mishra', to: 'Class 8 Students', subject: 'Math Homework Reminder', message: 'Submit algebra worksheet before Friday.', time: '11:05 AM', unread: true },
+  { id: 'MSG003', from: 'Parent - Aarav', to: 'Admin Office', subject: 'Fee Receipt Request', message: 'Please share fee receipt for July.', time: 'Yesterday', unread: false },
+];
+
+const initialCalendarEvents: CalendarEvent[] = [
+  { id: 'EV001', title: 'Parent Teacher Meeting', type: 'Meeting', date: '05 Jul 2026', time: '10:00 AM', audience: 'All Parents' },
+  { id: 'EV002', title: 'Unit Test Starts', type: 'Exam', date: '12 Jul 2026', time: '09:00 AM', audience: 'Class 4 to 8' },
+  { id: 'EV003', title: 'Guru Purnima Holiday', type: 'Holiday', date: '21 Jul 2026', time: 'Full Day', audience: 'All' },
+  { id: 'EV004', title: 'Science Exhibition', type: 'Event', date: '25 Jul 2026', time: '11:00 AM', audience: 'Class 6 to 8' },
+];
+
+const gradeFor = (percentage: number) => percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B+' : percentage >= 60 ? 'B' : 'C';
+
+const HomeworkPage = () => {
+  const [homeworkList, setHomeworkList] = useState<Homework[]>(initialHomework);
+  const [query, setQuery] = useState('');
+  const [editing, setEditing] = useState<Homework | null>(null);
+  const filtered = homeworkList.filter((h) => `${h.title} ${h.subject} ${h.className} ${h.teacher}`.toLowerCase().includes(query.toLowerCase()));
+  const saveHomework = (homework: Homework) => { setHomeworkList((current) => current.some((item) => item.id === homework.id) ? current.map((item) => item.id === homework.id ? homework : item) : [homework, ...current]); setEditing(null); };
+  return <div><PageHeader title="Homework" subtitle="Create, assign, edit, delete and track homework submissions." action={<PrimaryButton onClick={() => setEditing({ id: `HW${String(homeworkList.length + 1).padStart(3, '0')}`, title: '', subject: 'Mathematics', className: 'Class 8', teacher: 'Neha Mishra', dueDate: 'Today', status: 'Draft', submissions: 0, description: '' })}>＋ Add Homework</PrimaryButton>} /><SummaryCards items={[{ label: 'Total Homework', value: String(homeworkList.length), icon: '📝' }, { label: 'Assigned', value: String(homeworkList.filter((h) => h.status === 'Assigned').length), icon: '✅' }, { label: 'Draft', value: String(homeworkList.filter((h) => h.status === 'Draft').length), icon: '✍️' }, { label: 'Submissions', value: String(homeworkList.reduce((sum, h) => sum + h.submissions, 0)), icon: '📥' }]} /><Card className="p-5"><label className="relative block mb-5"><span className="absolute left-4 top-3 text-slate-400">🔍</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search homework by title, subject, class or teacher..." className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" /></label><div className="grid lg:grid-cols-3 gap-5">{filtered.map((h) => <div key={h.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5 border border-slate-100 dark:border-slate-700"><div className="flex items-start justify-between"><span className="text-4xl">📝</span><Status value={h.status} /></div><h3 className="text-xl font-black mt-4">{h.title}</h3><p className="text-slate-500 font-bold mt-1">{h.subject} • {h.className}</p><p className="text-sm text-slate-600 dark:text-slate-300 mt-3">{h.description}</p><div className="grid grid-cols-2 gap-3 mt-4"><div className="rounded-2xl bg-white dark:bg-slate-900 p-3"><p className="text-xs text-slate-500 font-bold">Due Date</p><p className="font-black">{h.dueDate}</p></div><div className="rounded-2xl bg-white dark:bg-slate-900 p-3"><p className="text-xs text-slate-500 font-bold">Submitted</p><p className="font-black">{h.submissions}</p></div></div><div className="flex gap-2 mt-5"><SoftButton onClick={() => setEditing(h)}>Edit</SoftButton><DangerButton onClick={() => setHomeworkList((current) => current.filter((item) => item.id !== h.id))}>Delete</DangerButton></div></div>)}</div>{filtered.length === 0 && <EmptyState title="No homework found" subtitle="Try another search keyword." />}</Card>{editing && <HomeworkForm homework={editing} onClose={() => setEditing(null)} onSave={saveHomework} />}</div>;
+};
+
+const HomeworkForm = ({ homework, onClose, onSave }: { homework: Homework; onClose: () => void; onSave: (homework: Homework) => void }) => {
+  const [form, setForm] = useState<Homework>(homework);
+  return <Modal title={homework.title ? 'Edit Homework' : 'Add Homework'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Homework ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} /><SelectInput label="Subject" value={form.subject} onChange={(value) => setForm({ ...form, subject: value })} options={['Mathematics', 'Science', 'English', 'Computer', 'Hindi']} /><SelectInput label="Class" value={form.className} onChange={(value) => setForm({ ...form, className: value })} options={classOptions.filter((item) => item !== 'All Classes')} /><TextInput label="Teacher" value={form.teacher} onChange={(value) => setForm({ ...form, teacher: value })} /><TextInput label="Due Date" value={form.dueDate} onChange={(value) => setForm({ ...form, dueDate: value })} /><SelectInput label="Status" value={form.status} onChange={(value) => setForm({ ...form, status: value as Homework['status'] })} options={['Draft', 'Assigned', 'Checked']} /><TextInput label="Submissions" type="number" value={String(form.submissions)} onChange={(value) => setForm({ ...form, submissions: Number(value) || 0 })} /><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Description / Instructions</span><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={4} /></label><div className="md:col-span-2 rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 text-sm text-slate-500">📎 Attachment upload UI ready. Backend/storage connect karne par real file upload work karega.</div><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Homework</PrimaryButton></div></form></Modal>;
+};
+
+const MarksPage = () => {
+  const [records, setRecords] = useState<MarkRecord[]>(initialMarks);
+  const [editing, setEditing] = useState<MarkRecord | null>(null);
+  const saveRecord = (record: MarkRecord) => { setRecords((current) => current.some((item) => item.id === record.id) ? current.map((item) => item.id === record.id ? record : item) : [record, ...current]); setEditing(null); };
+  const top = records.map((r) => ({ ...r, total: r.math + r.science + r.english + r.computer })).sort((a, b) => b.total - a.total)[0];
+  return <div><PageHeader title="Marks" subtitle="Subject-wise marks, percentage, grade and report card preview." action={<PrimaryButton onClick={() => setEditing({ id: `MRK${String(records.length + 1).padStart(3, '0')}`, student: '', className: 'Class 8-A', exam: 'Unit Test 1', math: 0, science: 0, english: 0, computer: 0 })}>＋ Add Marks</PrimaryButton>} /><SummaryCards items={[{ label: 'Mark Records', value: String(records.length), icon: '🏆' }, { label: 'Topper', value: top ? top.student.split(' ')[0] : '-', icon: '🥇' }, { label: 'Average', value: `${Math.round(records.reduce((sum, r) => sum + (r.math + r.science + r.english + r.computer) / 4, 0) / records.length)}%`, icon: '📊' }, { label: 'Report Cards', value: String(records.length), icon: '📄' }]} /><Card className="p-5 overflow-x-auto"><table className="w-full text-left min-w-[900px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Student</th><th>Class</th><th>Exam</th><th>Math</th><th>Science</th><th>English</th><th>Computer</th><th>%</th><th>Grade</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{records.map((r) => { const total = r.math + r.science + r.english + r.computer; const pct = Math.round(total / 4); return <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">{r.student}</td><td>{r.className}</td><td>{r.exam}</td><td>{r.math}</td><td>{r.science}</td><td>{r.english}</td><td>{r.computer}</td><td className="font-black">{pct}%</td><td><Status value={gradeFor(pct)} /></td><td><div className="flex gap-2"><button onClick={() => setEditing(r)} className="text-red-600 font-black">Edit</button><button onClick={() => setRecords((current) => current.filter((item) => item.id !== r.id))} className="text-slate-500 font-black">Delete</button></div></td></tr>; })}</tbody></table></Card>{top && <Card className="p-6 mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-slate-900"><h3 className="text-2xl font-black">🥇 Topper Report Card Preview</h3><p className="mt-2 text-slate-600 dark:text-slate-300">{top.student} scored {Math.round(top.total / 4)}% in {top.exam}. Grade: {gradeFor(Math.round(top.total / 4))}</p></Card>}{editing && <MarksForm record={editing} onClose={() => setEditing(null)} onSave={saveRecord} />}</div>;
+};
+
+const MarksForm = ({ record, onClose, onSave }: { record: MarkRecord; onClose: () => void; onSave: (record: MarkRecord) => void }) => {
+  const [form, setForm] = useState<MarkRecord>(record);
+  return <Modal title={record.student ? 'Edit Marks' : 'Add Marks'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Record ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Student Name" value={form.student} onChange={(value) => setForm({ ...form, student: value })} /><TextInput label="Class" value={form.className} onChange={(value) => setForm({ ...form, className: value })} /><TextInput label="Exam" value={form.exam} onChange={(value) => setForm({ ...form, exam: value })} />{(['math','science','english','computer'] as const).map((key) => <TextInput key={key} label={key.charAt(0).toUpperCase() + key.slice(1)} type="number" value={String(form[key])} onChange={(value) => setForm({ ...form, [key]: Number(value) || 0 })} />)}<div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Marks</PrimaryButton></div></form></Modal>;
+};
+
+const MessagesPage = () => {
+  const [messages, setMessages] = useState<MessageItem[]>(initialMessages);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [selected, setSelected] = useState<MessageItem | null>(null);
+  const sendMessage = (message: MessageItem) => { setMessages((current) => [message, ...current]); setComposeOpen(false); };
+  return <div><PageHeader title="Messages" subtitle="Inbox, unread messages and admin broadcast system." action={<PrimaryButton onClick={() => setComposeOpen(true)}>＋ Send Message</PrimaryButton>} /><SummaryCards items={[{ label: 'Total Messages', value: String(messages.length), icon: '💬' }, { label: 'Unread', value: String(messages.filter((m) => m.unread).length), icon: '🔔' }, { label: 'Broadcasts', value: '2', icon: '📣' }, { label: 'Today', value: '5', icon: '📨' }]} /><div className="grid lg:grid-cols-[1fr_380px] gap-6"><Card className="p-4"><div className="space-y-3">{messages.map((m) => <button key={m.id} onClick={() => { setSelected(m); setMessages((current) => current.map((item) => item.id === m.id ? { ...item, unread: false } : item)); }} className={`w-full text-left rounded-3xl p-5 border transition-all ${m.unread ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}><div className="flex items-start justify-between gap-3"><div><h3 className="font-black text-lg">{m.subject}</h3><p className="text-sm text-slate-500 mt-1">From: {m.from} → {m.to}</p></div><span className="text-xs font-black text-slate-500">{m.time}</span></div><p className="mt-3 text-slate-600 dark:text-slate-300 line-clamp-2">{m.message}</p></button>)}</div></Card><Card className="p-6"><h3 className="text-2xl font-black">Message Preview</h3>{selected ? <div className="mt-5"><p className="text-sm font-bold text-slate-500">{selected.from} → {selected.to}</p><h4 className="text-xl font-black mt-2">{selected.subject}</h4><p className="mt-4 text-slate-600 dark:text-slate-300">{selected.message}</p><div className="mt-6 flex gap-2"><SoftButton>Reply</SoftButton><DangerButton onClick={() => setMessages((current) => current.filter((item) => item.id !== selected.id))}>Delete</DangerButton></div></div> : <EmptyState title="No message selected" subtitle="Click any message to view details." />}</Card></div>{composeOpen && <MessageForm onClose={() => setComposeOpen(false)} onSave={sendMessage} />}</div>;
+};
+
+const MessageForm = ({ onClose, onSave }: { onClose: () => void; onSave: (message: MessageItem) => void }) => {
+  const [form, setForm] = useState<MessageItem>({ id: `MSG${Date.now().toString().slice(-4)}`, from: 'Admin Office', to: 'All Students', subject: '', message: '', time: 'Now', unread: true });
+  return <Modal title="Send Message" onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="From" value={form.from} onChange={(value) => setForm({ ...form, from: value })} /><TextInput label="To" value={form.to} onChange={(value) => setForm({ ...form, to: value })} /><TextInput label="Subject" value={form.subject} onChange={(value) => setForm({ ...form, subject: value })} /><SelectInput label="Priority" value={form.unread ? 'Unread' : 'Normal'} onChange={(value) => setForm({ ...form, unread: value === 'Unread' })} options={['Unread', 'Normal']} /><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Message</span><textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={5} /></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Send Message</PrimaryButton></div></form></Modal>;
+};
+
+const CalendarPage = () => {
+  const [events, setEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
+  const [editing, setEditing] = useState<CalendarEvent | null>(null);
+  const saveEvent = (event: CalendarEvent) => { setEvents((current) => current.some((item) => item.id === event.id) ? current.map((item) => item.id === event.id ? event : item) : [event, ...current]); setEditing(null); };
+  const days = Array.from({ length: 30 }, (_, i) => i + 1);
+  return <div><PageHeader title="Calendar" subtitle="Monthly school calendar with holidays, exams, events and meetings." action={<PrimaryButton onClick={() => setEditing({ id: `EV${String(events.length + 1).padStart(3, '0')}`, title: '', type: 'Event', date: 'Today', time: '10:00 AM', audience: 'All' })}>＋ Add Event</PrimaryButton>} /><SummaryCards items={[{ label: 'Events', value: String(events.length), icon: '🗓️' }, { label: 'Exams', value: String(events.filter((e) => e.type === 'Exam').length), icon: '🏆' }, { label: 'Holidays', value: String(events.filter((e) => e.type === 'Holiday').length), icon: '🎉' }, { label: 'Meetings', value: String(events.filter((e) => e.type === 'Meeting').length), icon: '👥' }]} /><div className="grid xl:grid-cols-[1fr_420px] gap-6"><Card className="p-5"><div className="flex items-center justify-between mb-5"><h3 className="text-2xl font-black">July 2026</h3><div className="flex gap-2"><SoftButton>←</SoftButton><SoftButton>→</SoftButton></div></div><div className="grid grid-cols-7 gap-2 text-center text-xs font-black text-slate-500 mb-2">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d) => <span key={d}>{d}</span>)}</div><div className="grid grid-cols-7 gap-2">{days.map((day) => { const hasEvent = events.some((e) => e.date.includes(String(day).padStart(2, '0')) || e.date.startsWith(String(day))); return <button key={day} className={`aspect-square rounded-2xl border font-black ${hasEvent ? 'bg-red-600 text-white border-red-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>{day}</button>; })}</div></Card><Card className="p-5"><h3 className="text-2xl font-black mb-4">Upcoming Schedule</h3><div className="space-y-3">{events.map((event) => <div key={event.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-4"><div className="flex justify-between gap-3"><div><h4 className="font-black">{event.title}</h4><p className="text-sm text-slate-500">{event.date} • {event.time}</p><p className="text-sm text-slate-500">Audience: {event.audience}</p></div><Status value={event.type} /></div><div className="mt-3 flex gap-2"><button onClick={() => setEditing(event)} className="text-red-600 font-black">Edit</button><button onClick={() => setEvents((current) => current.filter((item) => item.id !== event.id))} className="text-slate-500 font-black">Delete</button></div></div>)}</div></Card></div>{editing && <CalendarForm event={editing} onClose={() => setEditing(null)} onSave={saveEvent} />}</div>;
+};
+
+const CalendarForm = ({ event, onClose, onSave }: { event: CalendarEvent; onClose: () => void; onSave: (event: CalendarEvent) => void }) => {
+  const [form, setForm] = useState<CalendarEvent>(event);
+  return <Modal title={event.title ? 'Edit Event' : 'Add Event'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Event ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} /><SelectInput label="Type" value={form.type} onChange={(value) => setForm({ ...form, type: value as CalendarEvent['type'] })} options={['Holiday', 'Exam', 'Meeting', 'Event']} /><TextInput label="Date" value={form.date} onChange={(value) => setForm({ ...form, date: value })} /><TextInput label="Time" value={form.time} onChange={(value) => setForm({ ...form, time: value })} /><TextInput label="Audience" value={form.audience} onChange={(value) => setForm({ ...form, audience: value })} /><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Event</PrimaryButton></div></form></Modal>;
+};
+
+const SettingsPage = ({ role }: { role: UserRole }) => {
+  const [schoolName, setSchoolName] = useState('Gurukul Pathshala');
+  const [session, setSession] = useState('2026-2027');
+  const [language, setLanguage] = useState('English + Hindi');
+  const [theme, setTheme] = useState('System Default');
+  const [saved, setSaved] = useState(false);
+  return <div><PageHeader title="Settings" subtitle="School profile, theme, language, academic session and user security." action={<PrimaryButton onClick={() => { setSaved(true); window.setTimeout(() => setSaved(false), 2000); }}>Save Settings</PrimaryButton>} /><SummaryCards items={[{ label: 'Current Role', value: role, icon: '👤' }, { label: 'Session', value: session, icon: '📅' }, { label: 'Theme', value: theme.split(' ')[0], icon: '🎨' }, { label: 'Security', value: 'Good', icon: '🔐' }]} />{saved && <div className="mb-5 rounded-2xl bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 px-5 py-4 font-black">✅ Settings saved successfully.</div>}<div className="grid xl:grid-cols-2 gap-6"><Card className="p-6"><h3 className="text-2xl font-black mb-5">School Profile</h3><div className="grid gap-4"><TextInput label="School Name" value={schoolName} onChange={setSchoolName} /><TextInput label="Academic Session" value={session} onChange={setSession} /><SelectInput label="Language" value={language} onChange={setLanguage} options={['English + Hindi', 'English', 'Hindi']} /><SelectInput label="Theme Preference" value={theme} onChange={setTheme} options={['System Default', 'Light Mode', 'Dark Mode']} /><div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 text-sm text-slate-500">🖼️ Logo change UI ready. Actual image upload backend connect hone ke baad permanent save hoga.</div></div></Card><Card className="p-6"><h3 className="text-2xl font-black mb-5">User & Security</h3><div className="space-y-4"><TextInput label="User Name" value={role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Teacher User' : 'Student User'} onChange={() => {}} /><TextInput label="Email" value={`${role}@gurukulerp.com`} onChange={() => {}} /><TextInput label="New Password" type="password" value="" onChange={() => {}} placeholder="Enter new password" /><TextInput label="Confirm Password" type="password" value="" onChange={() => {}} placeholder="Confirm password" /><div className="flex gap-3"><SoftButton>Update Profile</SoftButton><DangerButton>Logout All Devices</DangerButton></div></div></Card></div></div>;
+};
+
+const ExaminationPage = () => <MarksPage />;
 const LibraryPage = () => <ModuleWithTable title="Library" subtitle="Book issue, return and library inventory." icon="📚" rows={['Issue Book', 'Return Book', 'Overdue List', 'Book Inventory']} />;
 const TransportPage = () => <ModuleWithTable title="Transport" subtitle="Route, bus, driver and student transport management." icon="🚌" rows={['Route A - BLW', 'Route B - Lanka', 'Driver List', 'Bus Attendance']} />;
-const HomeworkPage = () => <ModuleWithTable title="Homework" subtitle="Create homework, track submissions and teacher remarks." icon="📝" rows={['Math Worksheet', 'Science Project', 'English Essay', 'Computer Practical']} />;
-const ResultPage = () => <ModuleWithTable title="Result" subtitle="Student marks, grade and report card area." icon="🏆" rows={['Math 88%', 'Science 91%', 'English 84%', 'Computer 96%']} />;
+const ResultPage = () => <MarksPage />;
 
 const ModuleWithTable = ({ title, subtitle, icon, rows }: { title: string; subtitle: string; icon: string; rows: string[] }) => (
   <div><PageHeader title={title} subtitle={subtitle} action={<PrimaryButton>＋ Add New</PrimaryButton>} /><SummaryCards items={[{ label: 'Total Records', value: String(rows.length), icon }, { label: 'Pending', value: '2', icon: '⏳' }, { label: 'Completed', value: '8', icon: '✅' }, { label: 'Reports', value: '4', icon: '📄' }]} /><Card className="p-5"><div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">{rows.map((row, index) => <div key={row} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5"><span className="text-4xl">{icon}</span><h3 className="font-black text-lg mt-4">{row}</h3><p className="text-slate-500 text-sm mt-2">Record #{index + 1}</p><button className="mt-4 text-red-600 font-black">Open →</button></div>)}</div></Card></div>
@@ -349,10 +480,13 @@ const ErpPages = ({ role, page, onNavigate }: ErpPagesProps) => {
   if (page === 'attendance') return <AttendancePage />;
   if (page === 'fees') return <FeesPage />;
   if (page === 'notices') return <NoticesPage />;
-  if (page === 'examination' || page === 'marks') return <ExaminationPage />;
+  if (page === 'examination' || page === 'marks') return <MarksPage />;
   if (page === 'library') return <LibraryPage />;
   if (page === 'transport') return <TransportPage />;
   if (page === 'homework') return <HomeworkPage />;
+  if (page === 'messages') return <MessagesPage />;
+  if (page === 'calendar') return <CalendarPage />;
+  if (page === 'settings') return <SettingsPage role={role} />;
   if (page === 'result') return <ResultPage />;
   return <SimpleModule page={page} role={role} />;
 };
