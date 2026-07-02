@@ -1,0 +1,12 @@
+{
+  "name": "Gurukul Pathshala ERP",
+  "short_name": "Gurukul ERP",
+  "description": "School ERP dashboard for admin, teacher and student portals.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dc2626",
+  "icons": [
+    { "src": "/logo.svg", "sizes": "192x192", "type": "image/svg+xml" }
+  ]
+}

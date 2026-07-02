@@ -86,3 +86,11 @@
 - Added cross-role messages when important records are updated.
 - Added reset demo data control in Settings.
 - Build tested successfully with `npm run build`.
+
+
+## Day 5 - Netlify Production Polish
+- Added Netlify SPA redirect support.
+- Added netlify.toml for reliable deployment.
+- Added manifest, theme color and robots.txt.
+- Added ERP data export/import backup tools in Settings.
+- Added Day 5 deployment documentation.
