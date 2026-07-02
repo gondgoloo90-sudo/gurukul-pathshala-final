@@ -67,3 +67,12 @@
 - Settings module is now working with school profile, session, language, theme and user security settings UI.
 - Sidebar pages for Homework, Marks, Messages, Calendar and Settings now open functional pages instead of generic placeholder cards.
 - Production build tested successfully with `npm run build`.
+
+## Day 3 Enterprise Data Sync v1
+- Added shared localStorage ERP data store for students, teachers, homework, marks, messages, calendar, fees, notices and attendance.
+- Admin changes now reflect in Student Portal pages.
+- Teacher homework and marks now reflect in Student Homework and Result pages.
+- Fee and attendance updates now sync with student records.
+- Added cross-role messages when important records are updated.
+- Added reset demo data control in Settings.
+- Build tested successfully with `npm run build`.

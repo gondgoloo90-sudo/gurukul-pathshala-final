@@ -1,494 +1,143 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ErpPage, UserRole } from './types';
 
-interface ErpPagesProps {
-  role: UserRole;
-  page: ErpPage;
-  onNavigate: (page: ErpPage) => void;
-}
+interface ErpPagesProps { role: UserRole; page: ErpPage; onNavigate: (page: ErpPage) => void; }
 
-type Student = {
-  id: string;
-  name: string;
-  className: string;
-  section: string;
-  guardian: string;
-  phone: string;
-  fee: 'Paid' | 'Pending' | 'Partial';
-  attendance: string;
-  address: string;
-  status: 'Active' | 'Inactive';
+type Student = { id:string; name:string; className:string; section:string; guardian:string; phone:string; fee:'Paid'|'Pending'|'Partial'; attendance:number; address:string; status:'Active'|'Inactive'; };
+type Teacher = { id:string; name:string; subject:string; classes:string; phone:string; email:string; status:'Active'|'On Leave'; };
+type Homework = { id:string; title:string; subject:string; className:string; teacher:string; dueDate:string; status:'Draft'|'Assigned'|'Checked'; submissions:number; description:string; };
+type MarkRecord = { id:string; studentId:string; student:string; className:string; exam:string; math:number; science:number; english:number; computer:number; };
+type MessageItem = { id:string; from:string; to:string; subject:string; message:string; time:string; unread:boolean; audience:'All'|'Students'|'Teachers'|'Admin'; };
+type CalendarEvent = { id:string; title:string; type:'Holiday'|'Exam'|'Meeting'|'Event'; date:string; time:string; audience:string; };
+type FeeRecord = { receipt:string; studentId:string; student:string; className:string; amount:number; month:string; status:'Paid'|'Pending'|'Partial'; date:string; };
+type Notice = { id:string; title:string; audience:'All'|'Students'|'Teachers'|'Parents'; date:string; priority:'High'|'Medium'|'Normal'; message:string; };
+type AttendanceRecord = { id:string; studentId:string; student:string; className:string; date:string; status:'Present'|'Absent'|'Leave'; markedBy:string; };
+
+type ErpStore = { students:Student[]; teachers:Teacher[]; homework:Homework[]; marks:MarkRecord[]; messages:MessageItem[]; calendar:CalendarEvent[]; fees:FeeRecord[]; notices:Notice[]; attendance:AttendanceRecord[]; settings:{ schoolName:string; session:string; language:string; theme:string; }; };
+
+const initialStore: ErpStore = {
+  students: [
+    { id:'GPS001', name:'Aarav Sharma', className:'Class 8', section:'A', guardian:'Rajesh Sharma', phone:'+91 98765 43210', fee:'Paid', attendance:96, address:'Varanasi, UP', status:'Active' },
+    { id:'GPS002', name:'Ananya Singh', className:'Class 7', section:'B', guardian:'Pooja Singh', phone:'+91 91234 56780', fee:'Pending', attendance:91, address:'BLW, Varanasi', status:'Active' },
+    { id:'GPS003', name:'Kabir Verma', className:'Class 6', section:'A', guardian:'Manoj Verma', phone:'+91 99887 76655', fee:'Paid', attendance:94, address:'Manduadih, Varanasi', status:'Active' },
+    { id:'GPS004', name:'Meera Patel', className:'Class 5', section:'C', guardian:'Suman Patel', phone:'+91 90011 22334', fee:'Partial', attendance:89, address:'Sigra, Varanasi', status:'Active' },
+  ],
+  teachers: [
+    { id:'T001', name:'Neha Mishra', subject:'Mathematics', classes:'Class 8, Class 7', phone:'+91 98700 11122', email:'neha@gurukul.com', status:'Active' },
+    { id:'T002', name:'Amit Kumar', subject:'Science', classes:'Class 6, Class 8', phone:'+91 98700 11123', email:'amit@gurukul.com', status:'Active' },
+    { id:'T003', name:'Priya Singh', subject:'English', classes:'Class 5, Class 7', phone:'+91 98700 11124', email:'priya@gurukul.com', status:'On Leave' },
+  ],
+  homework: [
+    { id:'HW001', title:'Algebra Practice Set', subject:'Mathematics', className:'Class 8', teacher:'Neha Mishra', dueDate:'05 Jul 2026', status:'Assigned', submissions:22, description:'Solve questions 1 to 20 from algebra worksheet.' },
+    { id:'HW002', title:'Science Project Notes', subject:'Science', className:'Class 7', teacher:'Amit Kumar', dueDate:'07 Jul 2026', status:'Assigned', submissions:15, description:'Prepare notes on renewable energy sources.' },
+  ],
+  marks: [
+    { id:'MRK001', studentId:'GPS001', student:'Aarav Sharma', className:'Class 8-A', exam:'Unit Test 1', math:92, science:88, english:81, computer:95 },
+    { id:'MRK002', studentId:'GPS002', student:'Ananya Singh', className:'Class 7-B', exam:'Unit Test 1', math:84, science:91, english:88, computer:79 },
+  ],
+  messages: [
+    { id:'MSG001', from:'Admin Office', to:'All Students', audience:'Students', subject:'Fee Reminder', message:'Please check your fee status and clear pending dues on time.', time:'Today', unread:true },
+    { id:'MSG002', from:'Neha Mishra', to:'Class 8', audience:'Students', subject:'Math Homework', message:'New algebra homework has been assigned. Complete before due date.', time:'Today', unread:true },
+  ],
+  calendar: [
+    { id:'EV001', title:'Parent Teacher Meeting', type:'Meeting', date:'05 Jul 2026', time:'10:00 AM', audience:'All Parents' },
+    { id:'EV002', title:'Math Unit Test', type:'Exam', date:'12 Jul 2026', time:'09:00 AM', audience:'Class 8' },
+    { id:'EV003', title:'Science Exhibition', type:'Event', date:'25 Jul 2026', time:'11:00 AM', audience:'Class 6 to 8' },
+  ],
+  fees: [
+    { receipt:'FEE-1021', studentId:'GPS001', student:'Aarav Sharma', className:'8-A', amount:4500, month:'July', status:'Paid', date:'02 Jul 2026' },
+    { receipt:'FEE-1022', studentId:'GPS002', student:'Ananya Singh', className:'7-B', amount:4000, month:'July', status:'Pending', date:'Due' },
+    { receipt:'FEE-1023', studentId:'GPS004', student:'Meera Patel', className:'5-C', amount:2500, month:'July', status:'Partial', date:'01 Jul 2026' },
+  ],
+  notices: [
+    { id:'N001', title:'Parent Teacher Meeting', audience:'All', date:'05 Jul 2026', priority:'High', message:'PTM will be held from 10 AM to 2 PM.' },
+    { id:'N002', title:'Science Exhibition', audience:'Students', date:'10 Jul 2026', priority:'Normal', message:'Students should submit project names by Friday.' },
+  ],
+  attendance: [
+    { id:'ATT001', studentId:'GPS001', student:'Aarav Sharma', className:'Class 8', date:'Today', status:'Present', markedBy:'Neha Mishra' },
+    { id:'ATT002', studentId:'GPS002', student:'Ananya Singh', className:'Class 7', date:'Today', status:'Present', markedBy:'Neha Mishra' },
+    { id:'ATT003', studentId:'GPS003', student:'Kabir Verma', className:'Class 6', date:'Today', status:'Absent', markedBy:'Amit Kumar' },
+  ],
+  settings: { schoolName:'Gurukul Pathshala', session:'2026-2027', language:'English + Hindi', theme:'System Default' }
 };
 
-type Teacher = {
-  id: string;
-  name: string;
-  subject: string;
-  classes: string;
-  phone: string;
-  email: string;
-  status: 'Active' | 'On Leave';
+const STORE_KEY = 'gurukul-erp-enterprise-store-v3';
+const useErpStore = () => {
+  const [store, setStore] = useState<ErpStore>(() => {
+    try { const saved = localStorage.getItem(STORE_KEY); return saved ? { ...initialStore, ...JSON.parse(saved) } : initialStore; } catch { return initialStore; }
+  });
+  useEffect(() => { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }, [store]);
+  const patch = <K extends keyof ErpStore>(key: K, value: ErpStore[K] | ((current: ErpStore[K]) => ErpStore[K])) => setStore((current) => ({ ...current, [key]: typeof value === 'function' ? (value as (v: ErpStore[K]) => ErpStore[K])(current[key]) : value }));
+  const reset = () => { setStore(initialStore); localStorage.removeItem(STORE_KEY); };
+  return { store, patch, reset };
 };
 
-type FeeRecord = {
-  receipt: string;
-  student: string;
-  className: string;
-  amount: number;
-  month: string;
-  status: 'Paid' | 'Pending' | 'Partial';
-  date: string;
-};
+const classOptions = ['All Classes','Class 8','Class 7','Class 6','Class 5','Class 4'];
+const money = (amount:number) => new Intl.NumberFormat('en-IN',{style:'currency', currency:'INR', maximumFractionDigits:0}).format(amount);
+const gradeFor = (p:number) => p>=90?'A+':p>=80?'A':p>=70?'B+':p>=60?'B':'C';
+const roleName = (r:UserRole) => r === 'admin' ? 'Admin' : r === 'teacher' ? 'Teacher' : 'Student';
 
-type Notice = {
-  id: string;
-  title: string;
-  audience: string;
-  date: string;
-  priority: 'High' | 'Medium' | 'Normal';
-  message: string;
-};
+const Card = ({ children, className='' }:{children:React.ReactNode; className?:string}) => <div className={`rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-sm ${className}`}>{children}</div>;
+const PageHeader = ({ title, subtitle, action }:{title:string; subtitle:string; action?:React.ReactNode}) => <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6"><div><p className="text-sm font-black text-red-600 uppercase tracking-wide">Connected Data ERP</p><h2 className="text-3xl sm:text-4xl font-black mt-1">{title}</h2><p className="text-slate-500 dark:text-slate-400 mt-2">{subtitle}</p></div>{action}</div>;
+const PrimaryButton = ({children,onClick,type='button'}:{children:React.ReactNode; onClick?:()=>void; type?:'button'|'submit'}) => <button type={type} onClick={onClick} className="rounded-2xl bg-red-600 text-white px-5 py-3 font-black shadow-lg shadow-red-600/20 hover:bg-red-700 transition-colors">{children}</button>;
+const SoftButton = ({children,onClick,type='button'}:{children:React.ReactNode; onClick?:()=>void; type?:'button'|'submit'}) => <button type={type} onClick={onClick} className="rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{children}</button>;
+const DangerButton = ({children,onClick}:{children:React.ReactNode; onClick?:()=>void}) => <button onClick={onClick} className="rounded-2xl bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 px-4 py-3 font-black hover:bg-red-100 dark:hover:bg-red-900 transition-colors">{children}</button>;
+const Status = ({value}:{value:string}) => { const cls = ['Paid','Active','Present','Assigned','A+','A'].includes(value)?'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300':['Pending','High','Absent'].includes(value)?'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300':'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300'; return <span className={`px-3 py-1 rounded-full text-xs font-black ${cls}`}>{value}</span>; };
+const TextInput = ({label,value,onChange,placeholder,type='text'}:{label:string;value:string;onChange:(v:string)=>void;placeholder?:string;type?:string}) => <label><span className="text-sm font-black text-slate-600 dark:text-slate-300">{label}</span><input type={type} value={value} onChange={(e)=>onChange(e.target.value)} placeholder={placeholder||label} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" /></label>;
+const SelectInput = ({label,value,onChange,options}:{label:string;value:string;onChange:(v:string)=>void;options:string[]}) => <label><span className="text-sm font-black text-slate-600 dark:text-slate-300">{label}</span><select value={value} onChange={(e)=>onChange(e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500">{options.map(o=><option key={o}>{o}</option>)}</select></label>;
+const Modal = ({title,children,onClose}:{title:string;children:React.ReactNode;onClose:()=>void}) => <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"><div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl"><div className="sticky top-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between"><h3 className="text-2xl font-black">{title}</h3><button onClick={onClose} className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black">×</button></div><div className="p-6">{children}</div></div></div>;
+const EmptyState = ({title,subtitle}:{title:string;subtitle:string}) => <div className="text-center py-12"><div className="text-5xl mb-4">🔍</div><h3 className="text-xl font-black">{title}</h3><p className="text-slate-500 dark:text-slate-400 mt-2">{subtitle}</p></div>;
+const SummaryCards = ({items}:{items:{label:string;value:string;icon:string}[]}) => <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">{items.map(i=><Card key={i.label} className="p-5"><div className="flex items-center justify-between"><div><p className="text-slate-500 dark:text-slate-400 font-bold text-sm">{i.label}</p><h3 className="text-3xl font-black mt-1">{i.value}</h3></div><span className="text-4xl rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">{i.icon}</span></div></Card>)}</div>;
 
-type AttendanceRecord = {
-  studentId: string;
-  status: 'Present' | 'Absent' | 'Leave';
-};
+const SyncBanner = ({role}:{role:UserRole}) => <div className="mb-6 rounded-3xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 p-4 text-green-800 dark:text-green-200 font-bold">✅ Shared Data Store active: Admin/Teacher changes now show in {role === 'student' ? 'Student Portal' : 'all connected portals'} instantly and remain saved after refresh.</div>;
 
-const initialStudents: Student[] = [
-  { id: 'GPS001', name: 'Aarav Sharma', className: 'Class 8', section: 'A', guardian: 'Rajesh Sharma', phone: '+91 98765 43210', fee: 'Paid', attendance: '96%', address: 'Varanasi, UP', status: 'Active' },
-  { id: 'GPS002', name: 'Ananya Singh', className: 'Class 7', section: 'B', guardian: 'Pooja Singh', phone: '+91 91234 56780', fee: 'Pending', attendance: '91%', address: 'BLW, Varanasi', status: 'Active' },
-  { id: 'GPS003', name: 'Kabir Verma', className: 'Class 6', section: 'A', guardian: 'Manoj Verma', phone: '+91 99887 76655', fee: 'Paid', attendance: '94%', address: 'Manduadih, Varanasi', status: 'Active' },
-  { id: 'GPS004', name: 'Meera Patel', className: 'Class 5', section: 'C', guardian: 'Suman Patel', phone: '+91 90011 22334', fee: 'Partial', attendance: '89%', address: 'Sigra, Varanasi', status: 'Active' },
-  { id: 'GPS005', name: 'Rohan Gupta', className: 'Class 8', section: 'B', guardian: 'Deepak Gupta', phone: '+91 97777 11122', fee: 'Paid', attendance: '98%', address: 'Lanka, Varanasi', status: 'Active' },
-  { id: 'GPS006', name: 'Sara Khan', className: 'Class 4', section: 'A', guardian: 'Nadeem Khan', phone: '+91 93000 22211', fee: 'Pending', attendance: '87%', address: 'Chitaipur, Varanasi', status: 'Active' },
-];
+const StudentForm = ({student,onClose,onSave}:{student:Student;onClose:()=>void;onSave:(s:Student)=>void}) => { const [form,setForm]=useState(student); return <Modal title={student.name?'Edit Student':'Add Student'} onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="Student ID" value={form.id} onChange={v=>setForm({...form,id:v})}/><TextInput label="Student Name" value={form.name} onChange={v=>setForm({...form,name:v})}/><SelectInput label="Class" value={form.className} onChange={v=>setForm({...form,className:v})} options={classOptions.filter(x=>x!=='All Classes')}/><TextInput label="Section" value={form.section} onChange={v=>setForm({...form,section:v})}/><TextInput label="Guardian" value={form.guardian} onChange={v=>setForm({...form,guardian:v})}/><TextInput label="Phone" value={form.phone} onChange={v=>setForm({...form,phone:v})}/><SelectInput label="Fee Status" value={form.fee} onChange={v=>setForm({...form,fee:v as Student['fee']})} options={['Paid','Pending','Partial']}/><TextInput label="Attendance %" type="number" value={String(form.attendance)} onChange={v=>setForm({...form,attendance:Number(v)||0})}/><TextInput label="Address" value={form.address} onChange={v=>setForm({...form,address:v})}/><SelectInput label="Status" value={form.status} onChange={v=>setForm({...form,status:v as Student['status']})} options={['Active','Inactive']}/><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Student</PrimaryButton></div></form></Modal> };
 
-const initialTeachers: Teacher[] = [
-  { id: 'T001', name: 'Neha Mishra', subject: 'Mathematics', classes: '6-A, 7-B, 8-A', phone: '+91 98700 11122', email: 'neha@gurukul.com', status: 'Active' },
-  { id: 'T002', name: 'Amit Kumar', subject: 'Science', classes: '5-C, 6-A, 8-B', phone: '+91 98700 11123', email: 'amit@gurukul.com', status: 'Active' },
-  { id: 'T003', name: 'Priya Singh', subject: 'English', classes: '4-A, 5-B, 7-A', phone: '+91 98700 11124', email: 'priya@gurukul.com', status: 'On Leave' },
-  { id: 'T004', name: 'Rahul Yadav', subject: 'Computer', classes: '6-A, 7-B, 8-A', phone: '+91 98700 11125', email: 'rahul@gurukul.com', status: 'Active' },
-];
+const StudentsPage = ({role,store,patch,onNavigate}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch'];onNavigate:(p:ErpPage)=>void}) => { const [query,setQuery]=useState(''); const [classFilter,setClassFilter]=useState('All Classes'); const [editing,setEditing]=useState<Student|null>(null); const [profile,setProfile]=useState<Student|null>(null); const students=useMemo(()=>store.students.filter(s=>(classFilter==='All Classes'||s.className===classFilter)&&`${s.id} ${s.name} ${s.guardian} ${s.phone}`.toLowerCase().includes(query.toLowerCase())),[store.students,query,classFilter]); const save=(s:Student)=>{patch('students',cur=>cur.some(x=>x.id===s.id)?cur.map(x=>x.id===s.id?s:x):[s,...cur]); patch('messages',cur=>[{id:`MSG${Date.now()}`,from:'Admin Office',to:s.name,audience:'Students',subject:'Student profile updated',message:`${s.name} profile has been updated in ERP.`,time:'Now',unread:true},...cur]); setEditing(null)}; return <div><PageHeader title={role==='student'?'My Student Records':'Student Management'} subtitle="Central student records. Admin update here is visible in Student Portal, Fees, Marks and Attendance." action={role==='admin'?<PrimaryButton onClick={()=>setEditing({id:`GPS${String(store.students.length+1).padStart(3,'0')}`,name:'',className:'Class 8',section:'A',guardian:'',phone:'',fee:'Pending',attendance:0,address:'',status:'Active'})}>＋ Add Student</PrimaryButton>:undefined}/><SyncBanner role={role}/><SummaryCards items={[{label:'Students',value:String(store.students.length),icon:'🎓'},{label:'Active',value:String(store.students.filter(s=>s.status==='Active').length),icon:'✅'},{label:'Pending Fees',value:String(store.students.filter(s=>s.fee==='Pending').length),icon:'⏳'},{label:'Avg Attendance',value:`${Math.round(store.students.reduce((a,s)=>a+s.attendance,0)/store.students.length)}%`,icon:'📊'}]}/><Card className="p-5"><div className="grid lg:grid-cols-[1fr_220px_auto] gap-3 mb-5"><TextInput label="Search" value={query} onChange={setQuery} placeholder="Search student..."/><SelectInput label="Class" value={classFilter} onChange={setClassFilter} options={classOptions}/><div className="flex items-end"><SoftButton onClick={()=>onNavigate('admission')}>Admission Desk</SoftButton></div></div><div className="overflow-x-auto"><table className="w-full text-left min-w-[900px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Student</th><th>Class</th><th>Guardian</th><th>Phone</th><th>Fee</th><th>Attendance</th><th>Status</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{students.map(s=><tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4"><b>{s.name}</b><p className="text-xs text-slate-500">{s.id}</p></td><td>{s.className}-{s.section}</td><td>{s.guardian}</td><td>{s.phone}</td><td><Status value={s.fee}/></td><td>{s.attendance}%</td><td><Status value={s.status}/></td><td><div className="flex gap-2"><button onClick={()=>setProfile(s)} className="text-blue-600 font-black">View</button>{role==='admin'&&<button onClick={()=>setEditing(s)} className="text-red-600 font-black">Edit</button>}{role==='admin'&&<button onClick={()=>patch('students',cur=>cur.filter(x=>x.id!==s.id))} className="text-slate-500 font-black">Delete</button>}</div></td></tr>)}</tbody></table></div>{students.length===0&&<EmptyState title="No students found" subtitle="Try another search or class filter."/>}</Card>{editing&&<StudentForm student={editing} onClose={()=>setEditing(null)} onSave={save}/>} {profile&&<Modal title="Student Connected Profile" onClose={()=>setProfile(null)}><div className="grid md:grid-cols-2 gap-4"><Card className="p-5"><h3 className="text-2xl font-black">{profile.name}</h3><p className="text-slate-500">{profile.id} • {profile.className}-{profile.section}</p><p className="mt-3">Guardian: <b>{profile.guardian}</b></p><p>Phone: <b>{profile.phone}</b></p><p>Address: <b>{profile.address}</b></p></Card><Card className="p-5"><h4 className="font-black mb-3">Live Connected Data</h4><p>Fee: <Status value={profile.fee}/></p><p className="mt-3">Attendance: <b>{profile.attendance}%</b></p><p className="mt-3">Marks records: <b>{store.marks.filter(m=>m.studentId===profile.id||m.student===profile.name).length}</b></p><p className="mt-3">Homework for class: <b>{store.homework.filter(h=>h.className===profile.className).length}</b></p></Card></div></Modal>}</div> };
 
-const initialFees: FeeRecord[] = [
-  { receipt: 'FEE-1021', student: 'Aarav Sharma', className: '8-A', amount: 4500, month: 'July', status: 'Paid', date: '02 Jul 2026' },
-  { receipt: 'FEE-1022', student: 'Ananya Singh', className: '7-B', amount: 4000, month: 'July', status: 'Pending', date: 'Due' },
-  { receipt: 'FEE-1023', student: 'Meera Patel', className: '5-C', amount: 2500, month: 'July', status: 'Partial', date: '01 Jul 2026' },
-  { receipt: 'FEE-1024', student: 'Rohan Gupta', className: '8-B', amount: 4500, month: 'July', status: 'Paid', date: '29 Jun 2026' },
-];
+const TeacherForm = ({teacher,onClose,onSave}:{teacher:Teacher;onClose:()=>void;onSave:(t:Teacher)=>void}) => { const [form,setForm]=useState(teacher); return <Modal title={teacher.name?'Edit Teacher':'Add Teacher'} onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="Teacher ID" value={form.id} onChange={v=>setForm({...form,id:v})}/><TextInput label="Name" value={form.name} onChange={v=>setForm({...form,name:v})}/><TextInput label="Subject" value={form.subject} onChange={v=>setForm({...form,subject:v})}/><TextInput label="Classes" value={form.classes} onChange={v=>setForm({...form,classes:v})}/><TextInput label="Phone" value={form.phone} onChange={v=>setForm({...form,phone:v})}/><TextInput label="Email" value={form.email} onChange={v=>setForm({...form,email:v})}/><SelectInput label="Status" value={form.status} onChange={v=>setForm({...form,status:v as Teacher['status']})} options={['Active','On Leave']}/><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Teacher</PrimaryButton></div></form></Modal> };
+const TeachersPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [editing,setEditing]=useState<Teacher|null>(null); const save=(t:Teacher)=>{patch('teachers',cur=>cur.some(x=>x.id===t.id)?cur.map(x=>x.id===t.id?t:x):[t,...cur]); patch('messages',cur=>[{id:`MSG${Date.now()}`,from:'Admin Office',to:t.name,audience:'Teachers',subject:'Teacher profile updated',message:`${t.name} record has been updated.`,time:'Now',unread:true},...cur]); setEditing(null)}; return <div><PageHeader title="Teacher Management" subtitle="Teacher changes are connected with homework, marks and messages." action={role==='admin'?<PrimaryButton onClick={()=>setEditing({id:`T${String(store.teachers.length+1).padStart(3,'0')}`,name:'',subject:'Mathematics',classes:'Class 8',phone:'',email:'',status:'Active'})}>＋ Add Teacher</PrimaryButton>:undefined}/><SyncBanner role={role}/><SummaryCards items={[{label:'Teachers',value:String(store.teachers.length),icon:'👩‍🏫'},{label:'Active',value:String(store.teachers.filter(t=>t.status==='Active').length),icon:'✅'},{label:'Subjects',value:String(new Set(store.teachers.map(t=>t.subject)).size),icon:'📚'},{label:'Messages',value:String(store.messages.filter(m=>m.audience==='Teachers').length),icon:'💬'}]}/><Card className="p-5 overflow-x-auto"><table className="w-full min-w-[800px] text-left"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Teacher</th><th>Subject</th><th>Classes</th><th>Contact</th><th>Status</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{store.teachers.map(t=><tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4"><b>{t.name}</b><p className="text-xs text-slate-500">{t.id}</p></td><td>{t.subject}</td><td>{t.classes}</td><td>{t.phone}<p className="text-xs text-slate-500">{t.email}</p></td><td><Status value={t.status}/></td><td>{role==='admin'?<div className="flex gap-2"><button onClick={()=>setEditing(t)} className="text-red-600 font-black">Edit</button><button onClick={()=>patch('teachers',cur=>cur.filter(x=>x.id!==t.id))} className="text-slate-500 font-black">Delete</button></div>:<span className="text-slate-500">View only</span>}</td></tr>)}</tbody></table></Card>{editing&&<TeacherForm teacher={editing} onClose={()=>setEditing(null)} onSave={save}/>}</div> };
 
-const initialNotices: Notice[] = [
-  { id: 'N001', title: 'Parent Teacher Meeting', audience: 'All Parents', date: '05 July 2026', priority: 'High', message: 'PTM will be held from 10 AM to 2 PM.' },
-  { id: 'N002', title: 'Fee Reminder', audience: 'Pending Fee Students', date: '06 July 2026', priority: 'Medium', message: 'Please clear pending fees before due date.' },
-  { id: 'N003', title: 'Science Exhibition', audience: 'Class 6 to 8', date: '10 July 2026', priority: 'Normal', message: 'Students should submit project names by Friday.' },
-];
+const HomeworkForm = ({homework,onClose,onSave,teachers}:{homework:Homework;onClose:()=>void;onSave:(h:Homework)=>void;teachers:Teacher[]}) => { const [form,setForm]=useState(homework); return <Modal title={homework.title?'Edit Homework':'Add Homework'} onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="Homework ID" value={form.id} onChange={v=>setForm({...form,id:v})}/><TextInput label="Title" value={form.title} onChange={v=>setForm({...form,title:v})}/><SelectInput label="Subject" value={form.subject} onChange={v=>setForm({...form,subject:v})} options={['Mathematics','Science','English','Computer','Hindi']}/><SelectInput label="Class" value={form.className} onChange={v=>setForm({...form,className:v})} options={classOptions.filter(x=>x!=='All Classes')}/><SelectInput label="Teacher" value={form.teacher} onChange={v=>setForm({...form,teacher:v})} options={teachers.map(t=>t.name)}/><TextInput label="Due Date" value={form.dueDate} onChange={v=>setForm({...form,dueDate:v})}/><SelectInput label="Status" value={form.status} onChange={v=>setForm({...form,status:v as Homework['status']})} options={['Draft','Assigned','Checked']}/><TextInput label="Submissions" type="number" value={String(form.submissions)} onChange={v=>setForm({...form,submissions:Number(v)||0})}/><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Instructions</span><textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})} rows={4} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"/></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Homework</PrimaryButton></div></form></Modal> };
+const HomeworkPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [query,setQuery]=useState(''); const [editing,setEditing]=useState<Homework|null>(null); const list=store.homework.filter(h=>(role!=='student'||h.status!=='Draft')&&`${h.title} ${h.subject} ${h.className} ${h.teacher}`.toLowerCase().includes(query.toLowerCase())); const save=(h:Homework)=>{patch('homework',cur=>cur.some(x=>x.id===h.id)?cur.map(x=>x.id===h.id?h:x):[h,...cur]); if(h.status==='Assigned') patch('messages',cur=>[{id:`MSG${Date.now()}`,from:h.teacher,to:h.className,audience:'Students',subject:`New Homework: ${h.title}`,message:h.description,time:'Now',unread:true},...cur]); setEditing(null)}; return <div><PageHeader title={role==='student'?'My Homework':'Homework'} subtitle="Teacher/Admin homework is shared with Student Portal automatically." action={role!=='student'?<PrimaryButton onClick={()=>setEditing({id:`HW${String(store.homework.length+1).padStart(3,'0')}`,title:'',subject:'Mathematics',className:'Class 8',teacher:store.teachers[0]?.name||'Teacher',dueDate:'Today',status:'Assigned',submissions:0,description:''})}>＋ Add Homework</PrimaryButton>:undefined}/><SyncBanner role={role}/><SummaryCards items={[{label:'Homework',value:String(list.length),icon:'📝'},{label:'Assigned',value:String(list.filter(h=>h.status==='Assigned').length),icon:'✅'},{label:'Submissions',value:String(list.reduce((a,h)=>a+h.submissions,0)),icon:'📥'},{label:'Teachers',value:String(new Set(list.map(h=>h.teacher)).size),icon:'👩‍🏫'}]}/><Card className="p-5"><TextInput label="Search Homework" value={query} onChange={setQuery} placeholder="Search homework..."/><div className="grid lg:grid-cols-3 gap-5 mt-5">{list.map(h=><div key={h.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5 border border-slate-100 dark:border-slate-700"><div className="flex items-start justify-between"><span className="text-4xl">📝</span><Status value={h.status}/></div><h3 className="text-xl font-black mt-4">{h.title}</h3><p className="text-slate-500 font-bold mt-1">{h.subject} • {h.className}</p><p className="text-sm text-slate-600 dark:text-slate-300 mt-3">{h.description}</p><div className="grid grid-cols-2 gap-3 mt-4"><div className="rounded-2xl bg-white dark:bg-slate-900 p-3"><p className="text-xs text-slate-500 font-bold">Teacher</p><p className="font-black">{h.teacher}</p></div><div className="rounded-2xl bg-white dark:bg-slate-900 p-3"><p className="text-xs text-slate-500 font-bold">Due</p><p className="font-black">{h.dueDate}</p></div></div>{role!=='student'&&<div className="flex gap-2 mt-5"><SoftButton onClick={()=>setEditing(h)}>Edit</SoftButton><DangerButton onClick={()=>patch('homework',cur=>cur.filter(x=>x.id!==h.id))}>Delete</DangerButton></div>}{role==='student'&&<div className="mt-5 rounded-2xl bg-green-50 dark:bg-green-950 p-3 text-green-700 dark:text-green-300 font-black">Submit Homework UI Ready</div>}</div>)}</div>{list.length===0&&<EmptyState title="No homework found" subtitle="Teacher assigned homework will appear here."/>}</Card>{editing&&<HomeworkForm homework={editing} teachers={store.teachers} onClose={()=>setEditing(null)} onSave={save}/>}</div> };
 
-const pageTitles: Partial<Record<ErpPage, string>> = {
-  students: 'All Students', admission: 'Admission Desk', promote: 'Promote Student', teachers: 'Teacher Management',
-  attendance: 'Attendance', fees: 'Fee Management', examination: 'Examination', library: 'Library', transport: 'Transport',
-  notices: 'Notice Board', documents: 'Documents', settings: 'Settings', classes: 'My Classes', homework: 'Homework',
-  marks: 'Marks Entry', messages: 'Messages', calendar: 'Calendar', result: 'Result', profile: 'Profile',
-};
+const MarksForm = ({record,onClose,onSave,students}:{record:MarkRecord;onClose:()=>void;onSave:(r:MarkRecord)=>void;students:Student[]}) => { const [form,setForm]=useState(record); const chooseStudent=(id:string)=>{ const s=students.find(x=>x.id===id); if(s) setForm({...form,studentId:s.id,student:s.name,className:`${s.className}-${s.section}`}) }; return <Modal title={record.student?'Edit Marks':'Add Marks'} onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="Record ID" value={form.id} onChange={v=>setForm({...form,id:v})}/><SelectInput label="Student" value={form.studentId} onChange={chooseStudent} options={students.map(s=>s.id)}/><TextInput label="Student Name" value={form.student} onChange={v=>setForm({...form,student:v})}/><TextInput label="Class" value={form.className} onChange={v=>setForm({...form,className:v})}/><TextInput label="Exam" value={form.exam} onChange={v=>setForm({...form,exam:v})}/>{(['math','science','english','computer'] as const).map(k=><TextInput key={k} label={k.charAt(0).toUpperCase()+k.slice(1)} type="number" value={String(form[k])} onChange={v=>setForm({...form,[k]:Number(v)||0})}/>) }<div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Marks</PrimaryButton></div></form></Modal> };
+const MarksPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [editing,setEditing]=useState<MarkRecord|null>(null); const records=role==='student'?store.marks:store.marks; const save=(r:MarkRecord)=>{patch('marks',cur=>cur.some(x=>x.id===r.id)?cur.map(x=>x.id===r.id?r:x):[r,...cur]); patch('messages',cur=>[{id:`MSG${Date.now()}`,from:'Teacher',to:r.student,audience:'Students',subject:`Marks updated: ${r.exam}`,message:`Your ${r.exam} marks are updated. Check Result page.`,time:'Now',unread:true},...cur]); setEditing(null)}; const avg=records.length?Math.round(records.reduce((sum,r)=>sum+(r.math+r.science+r.english+r.computer)/4,0)/records.length):0; return <div><PageHeader title={role==='student'?'My Result / Marks':'Marks Entry'} subtitle="Teacher marks are directly visible in Student Result." action={role!=='student'?<PrimaryButton onClick={()=>setEditing({id:`MRK${String(store.marks.length+1).padStart(3,'0')}`,studentId:store.students[0]?.id||'',student:store.students[0]?.name||'',className:store.students[0]?`${store.students[0].className}-${store.students[0].section}`:'Class 8-A',exam:'Unit Test',math:0,science:0,english:0,computer:0})}>＋ Add Marks</PrimaryButton>:undefined}/><SyncBanner role={role}/><SummaryCards items={[{label:'Records',value:String(records.length),icon:'🏆'},{label:'Average',value:`${avg}%`,icon:'📊'},{label:'A Grade',value:String(records.filter(r=>(r.math+r.science+r.english+r.computer)/4>=80).length),icon:'🥇'},{label:'Report Cards',value:String(records.length),icon:'📄'}]}/><Card className="p-5 overflow-x-auto"><table className="w-full text-left min-w-[900px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Student</th><th>Class</th><th>Exam</th><th>Math</th><th>Science</th><th>English</th><th>Computer</th><th>%</th><th>Grade</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{records.map(r=>{const pct=Math.round((r.math+r.science+r.english+r.computer)/4); return <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">{r.student}</td><td>{r.className}</td><td>{r.exam}</td><td>{r.math}</td><td>{r.science}</td><td>{r.english}</td><td>{r.computer}</td><td className="font-black">{pct}%</td><td><Status value={gradeFor(pct)}/></td><td>{role!=='student'?<div className="flex gap-2"><button onClick={()=>setEditing(r)} className="text-red-600 font-black">Edit</button><button onClick={()=>patch('marks',cur=>cur.filter(x=>x.id!==r.id))} className="text-slate-500 font-black">Delete</button></div>:<span className="text-slate-500">Report</span>}</td></tr>})}</tbody></table></Card>{editing&&<MarksForm record={editing} students={store.students} onClose={()=>setEditing(null)} onSave={save}/>}</div> };
 
-const classOptions = ['All Classes', 'Class 8', 'Class 7', 'Class 6', 'Class 5', 'Class 4'];
+const AttendancePage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [filter,setFilter]=useState('All Classes'); const students=store.students.filter(s=>filter==='All Classes'||s.className===filter); const setStatus=(s:Student,status:AttendanceRecord['status'])=>{ const id=`ATT-${s.id}-TODAY`; patch('attendance',cur=>cur.some(a=>a.id===id)?cur.map(a=>a.id===id?{...a,status}:a):[{id,studentId:s.id,student:s.name,className:s.className,date:'Today',status,markedBy:roleName(role)},...cur]); patch('students',cur=>cur.map(x=>x.id===s.id?{...x,attendance:status==='Present'?Math.min(100,x.attendance+1):Math.max(0,x.attendance-1)}:x)); }; return <div><PageHeader title={role==='student'?'My Attendance':'Attendance'} subtitle="Attendance marked by teacher/admin updates Student Portal instantly."/><SyncBanner role={role}/><SummaryCards items={[{label:'Present Today',value:String(store.attendance.filter(a=>a.status==='Present').length),icon:'✅'},{label:'Absent Today',value:String(store.attendance.filter(a=>a.status==='Absent').length),icon:'❌'},{label:'Leave',value:String(store.attendance.filter(a=>a.status==='Leave').length),icon:'🟡'},{label:'Avg',value:`${Math.round(store.students.reduce((a,s)=>a+s.attendance,0)/store.students.length)}%`,icon:'📊'}]}/><Card className="p-5"><SelectInput label="Class Filter" value={filter} onChange={setFilter} options={classOptions}/><div className="grid lg:grid-cols-2 gap-4 mt-5">{students.map(s=>{const rec=store.attendance.find(a=>a.studentId===s.id&&a.date==='Today'); return <div key={s.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"><div><h3 className="font-black text-lg">{s.name}</h3><p className="text-sm text-slate-500">{s.className}-{s.section} • Overall {s.attendance}%</p><div className="mt-2"><Status value={rec?.status||'Not Marked'}/></div></div>{role!=='student'&&<div className="flex gap-2"><SoftButton onClick={()=>setStatus(s,'Present')}>Present</SoftButton><DangerButton onClick={()=>setStatus(s,'Absent')}>Absent</DangerButton><SoftButton onClick={()=>setStatus(s,'Leave')}>Leave</SoftButton></div>}</div>})}</div></Card></div> };
 
-const money = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+const FeesPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [selected,setSelected]=useState<FeeRecord|null>(null); const markPaid=(f:FeeRecord)=>{patch('fees',cur=>cur.map(x=>x.receipt===f.receipt?{...x,status:'Paid',date:'Today'}:x)); patch('students',cur=>cur.map(s=>s.id===f.studentId?{...s,fee:'Paid'}:s)); patch('messages',cur=>[{id:`MSG${Date.now()}`,from:'Accounts Office',to:f.student,audience:'Students',subject:'Fee status updated',message:`Your ${f.month} fee is marked Paid.`,time:'Now',unread:true},...cur]);}; const list=role==='student'?store.fees:store.fees; return <div><PageHeader title={role==='student'?'My Fees':'Fee Management'} subtitle="Admin fee update is connected with student fee status."/><SyncBanner role={role}/><SummaryCards items={[{label:'Collected',value:money(list.filter(f=>f.status==='Paid').reduce((a,f)=>a+f.amount,0)),icon:'💰'},{label:'Pending',value:money(list.filter(f=>f.status!=='Paid').reduce((a,f)=>a+f.amount,0)),icon:'⏳'},{label:'Receipts',value:String(list.length),icon:'🧾'},{label:'Paid Students',value:String(store.students.filter(s=>s.fee==='Paid').length),icon:'✅'}]}/><Card className="p-5 overflow-x-auto"><table className="w-full text-left min-w-[800px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Receipt</th><th>Student</th><th>Class</th><th>Month</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{list.map(f=><tr key={f.receipt} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">{f.receipt}</td><td>{f.student}</td><td>{f.className}</td><td>{f.month}</td><td>{money(f.amount)}</td><td><Status value={f.status}/></td><td>{f.date}</td><td><div className="flex gap-2"><button onClick={()=>setSelected(f)} className="text-blue-600 font-black">Receipt</button>{role==='admin'&&f.status!=='Paid'&&<button onClick={()=>markPaid(f)} className="text-green-600 font-black">Mark Paid</button>}</div></td></tr>)}</tbody></table></Card>{selected&&<Modal title="Fee Receipt Preview" onClose={()=>setSelected(null)}><div className="rounded-3xl border border-dashed border-slate-300 p-6"><h3 className="text-2xl font-black">Gurukul Pathshala</h3><p className="text-slate-500">Receipt No: {selected.receipt}</p><div className="grid md:grid-cols-2 gap-4 mt-5"><p>Student: <b>{selected.student}</b></p><p>Class: <b>{selected.className}</b></p><p>Month: <b>{selected.month}</b></p><p>Amount: <b>{money(selected.amount)}</b></p><p>Status: <Status value={selected.status}/></p><p>Date: <b>{selected.date}</b></p></div></div></Modal>}</div> };
 
-const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-sm ${className}`}>{children}</div>
-);
+const NoticesPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [editing,setEditing]=useState<Notice|null>(null); const visible=store.notices.filter(n=>role==='admin'||n.audience==='All'||(role==='student'&&n.audience==='Students')||(role==='teacher'&&n.audience==='Teachers')); const save=(n:Notice)=>{patch('notices',cur=>cur.some(x=>x.id===n.id)?cur.map(x=>x.id===n.id?n:x):[n,...cur]); patch('messages',cur=>[{id:`MSG${Date.now()}`,from:'Admin Office',to:n.audience,audience:n.audience==='Teachers'?'Teachers':n.audience==='Students'?'Students':'All',subject:`Notice: ${n.title}`,message:n.message,time:'Now',unread:true},...cur]); setEditing(null)}; return <div><PageHeader title="Notice Board" subtitle="Admin notices broadcast to Teacher and Student portals." action={role==='admin'?<PrimaryButton onClick={()=>setEditing({id:`N${String(store.notices.length+1).padStart(3,'0')}`,title:'',audience:'All',date:'Today',priority:'Normal',message:''})}>＋ Create Notice</PrimaryButton>:undefined}/><SyncBanner role={role}/><div className="grid lg:grid-cols-3 gap-5">{visible.map(n=><Card key={n.id} className="p-5"><div className="flex items-start justify-between"><span className="text-4xl">📢</span><Status value={n.priority}/></div><h3 className="text-xl font-black mt-4">{n.title}</h3><p className="text-sm text-slate-500 mt-1">{n.date} • {n.audience}</p><p className="mt-4 text-slate-600 dark:text-slate-300">{n.message}</p>{role==='admin'&&<div className="flex gap-2 mt-5"><SoftButton onClick={()=>setEditing(n)}>Edit</SoftButton><DangerButton onClick={()=>patch('notices',cur=>cur.filter(x=>x.id!==n.id))}>Delete</DangerButton></div>}</Card>)}</div>{editing&&<NoticeForm notice={editing} onClose={()=>setEditing(null)} onSave={save}/>}</div> };
+const NoticeForm = ({notice,onClose,onSave}:{notice:Notice;onClose:()=>void;onSave:(n:Notice)=>void}) => { const [form,setForm]=useState(notice); return <Modal title={notice.title?'Edit Notice':'Create Notice'} onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="Notice ID" value={form.id} onChange={v=>setForm({...form,id:v})}/><TextInput label="Title" value={form.title} onChange={v=>setForm({...form,title:v})}/><SelectInput label="Audience" value={form.audience} onChange={v=>setForm({...form,audience:v as Notice['audience']})} options={['All','Students','Teachers','Parents']}/><TextInput label="Date" value={form.date} onChange={v=>setForm({...form,date:v})}/><SelectInput label="Priority" value={form.priority} onChange={v=>setForm({...form,priority:v as Notice['priority']})} options={['High','Medium','Normal']}/><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Message</span><textarea value={form.message} onChange={e=>setForm({...form,message:e.target.value})} rows={4} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"/></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Notice</PrimaryButton></div></form></Modal> };
 
-const PageHeader = ({ title, subtitle, action }: { title: string; subtitle: string; action?: React.ReactNode }) => (
-  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-    <div>
-      <p className="text-sm font-black text-red-600 uppercase tracking-wide">Gurukul ERP</p>
-      <h2 className="text-3xl sm:text-4xl font-black mt-1">{title}</h2>
-      <p className="text-slate-500 dark:text-slate-400 mt-2">{subtitle}</p>
-    </div>
-    {action}
-  </div>
-);
+const MessagesPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [compose,setCompose]=useState(false); const [selected,setSelected]=useState<MessageItem|null>(null); const visible=store.messages.filter(m=>role==='admin'||m.audience==='All'||(role==='student'&&m.audience==='Students')||(role==='teacher'&&m.audience==='Teachers')||m.to.toLowerCase().includes(role)); const send=(m:MessageItem)=>{patch('messages',cur=>[m,...cur]); setCompose(false)}; return <div><PageHeader title="Messages" subtitle="Messages are shared across Admin, Teacher and Student roles based on audience." action={<PrimaryButton onClick={()=>setCompose(true)}>＋ Send Message</PrimaryButton>}/><SyncBanner role={role}/><SummaryCards items={[{label:'Messages',value:String(visible.length),icon:'💬'},{label:'Unread',value:String(visible.filter(m=>m.unread).length),icon:'🔔'},{label:'Broadcasts',value:String(store.messages.filter(m=>m.audience==='All').length),icon:'📣'},{label:'Today',value:String(visible.filter(m=>m.time==='Now'||m.time==='Today').length),icon:'📨'}]}/><div className="grid lg:grid-cols-[1fr_380px] gap-6"><Card className="p-4"><div className="space-y-3">{visible.map(m=><button key={m.id} onClick={()=>{setSelected(m);patch('messages',cur=>cur.map(x=>x.id===m.id?{...x,unread:false}:x))}} className={`w-full text-left rounded-3xl p-5 border ${m.unread?'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800':'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}><div className="flex items-start justify-between gap-3"><div><h3 className="font-black text-lg">{m.subject}</h3><p className="text-sm text-slate-500 mt-1">From: {m.from} → {m.to}</p></div><span className="text-xs font-black text-slate-500">{m.time}</span></div><p className="mt-3 text-slate-600 dark:text-slate-300 line-clamp-2">{m.message}</p></button>)}</div></Card><Card className="p-6"><h3 className="text-2xl font-black">Message Preview</h3>{selected?<div className="mt-5"><p className="text-sm font-bold text-slate-500">{selected.from} → {selected.to}</p><h4 className="text-xl font-black mt-2">{selected.subject}</h4><p className="mt-4 text-slate-600 dark:text-slate-300">{selected.message}</p><div className="mt-6 flex gap-2"><SoftButton onClick={()=>setCompose(true)}>Reply</SoftButton><DangerButton onClick={()=>patch('messages',cur=>cur.filter(x=>x.id!==selected.id))}>Delete</DangerButton></div></div>:<EmptyState title="No message selected" subtitle="Click any message to view details."/>}</Card></div>{compose&&<MessageForm role={role} onClose={()=>setCompose(false)} onSave={send}/>}</div> };
+const MessageForm = ({role,onClose,onSave}:{role:UserRole;onClose:()=>void;onSave:(m:MessageItem)=>void}) => { const [form,setForm]=useState<MessageItem>({id:`MSG${Date.now().toString().slice(-4)}`,from:roleName(role),to:'All Students',audience:'Students',subject:'',message:'',time:'Now',unread:true}); return <Modal title="Send Message" onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="From" value={form.from} onChange={v=>setForm({...form,from:v})}/><TextInput label="To" value={form.to} onChange={v=>setForm({...form,to:v})}/><SelectInput label="Audience" value={form.audience} onChange={v=>setForm({...form,audience:v as MessageItem['audience']})} options={['All','Students','Teachers','Admin']}/><TextInput label="Subject" value={form.subject} onChange={v=>setForm({...form,subject:v})}/><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Message</span><textarea value={form.message} onChange={e=>setForm({...form,message:e.target.value})} rows={5} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"/></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Send Message</PrimaryButton></div></form></Modal> };
 
-const Status = ({ value }: { value: string }) => {
-  const cls = value === 'Paid' || value === 'Active' || value === 'Present'
-    ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
-    : value === 'Pending' || value === 'High' || value === 'Absent'
-      ? 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
-      : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300';
-  return <span className={`px-3 py-1 rounded-full text-xs font-black ${cls}`}>{value}</span>;
-};
+const CalendarPage = ({role,store,patch}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => { const [editing,setEditing]=useState<CalendarEvent|null>(null); const save=(e:CalendarEvent)=>{patch('calendar',cur=>cur.some(x=>x.id===e.id)?cur.map(x=>x.id===e.id?e:x):[e,...cur]); patch('messages',cur=>[{id:`MSG${Date.now()}`,from:'Calendar',to:e.audience,audience:'All',subject:`Calendar Event: ${e.title}`,message:`${e.title} scheduled on ${e.date} at ${e.time}.`,time:'Now',unread:true},...cur]); setEditing(null)}; const days=Array.from({length:30},(_,i)=>i+1); return <div><PageHeader title="Calendar" subtitle="Events created by Admin/Teacher appear in all calendars." action={role!=='student'?<PrimaryButton onClick={()=>setEditing({id:`EV${String(store.calendar.length+1).padStart(3,'0')}`,title:'',type:'Event',date:'Today',time:'10:00 AM',audience:'All'})}>＋ Add Event</PrimaryButton>:undefined}/><SyncBanner role={role}/><SummaryCards items={[{label:'Events',value:String(store.calendar.length),icon:'🗓️'},{label:'Exams',value:String(store.calendar.filter(e=>e.type==='Exam').length),icon:'🏆'},{label:'Holidays',value:String(store.calendar.filter(e=>e.type==='Holiday').length),icon:'🎉'},{label:'Meetings',value:String(store.calendar.filter(e=>e.type==='Meeting').length),icon:'👥'}]}/><div className="grid xl:grid-cols-[1fr_420px] gap-6"><Card className="p-5"><h3 className="text-2xl font-black mb-5">July 2026</h3><div className="grid grid-cols-7 gap-2 text-center text-xs font-black text-slate-500 mb-2">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><span key={d}>{d}</span>)}</div><div className="grid grid-cols-7 gap-2">{days.map(day=>{const has=store.calendar.some(e=>e.date.includes(String(day).padStart(2,'0'))||e.date.startsWith(String(day))); return <button key={day} className={`aspect-square rounded-2xl border font-black ${has?'bg-red-600 text-white border-red-600':'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>{day}</button>})}</div></Card><Card className="p-5"><h3 className="text-2xl font-black mb-4">Upcoming Schedule</h3><div className="space-y-3">{store.calendar.map(e=><div key={e.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-4"><div className="flex justify-between gap-3"><div><h4 className="font-black">{e.title}</h4><p className="text-sm text-slate-500">{e.date} • {e.time}</p><p className="text-sm text-slate-500">Audience: {e.audience}</p></div><Status value={e.type}/></div>{role!=='student'&&<div className="mt-3 flex gap-2"><button onClick={()=>setEditing(e)} className="text-red-600 font-black">Edit</button><button onClick={()=>patch('calendar',cur=>cur.filter(x=>x.id!==e.id))} className="text-slate-500 font-black">Delete</button></div>}</div>)}</div></Card></div>{editing&&<CalendarForm event={editing} onClose={()=>setEditing(null)} onSave={save}/>}</div> };
+const CalendarForm = ({event,onClose,onSave}:{event:CalendarEvent;onClose:()=>void;onSave:(e:CalendarEvent)=>void}) => { const [form,setForm]=useState(event); return <Modal title={event.title?'Edit Event':'Add Event'} onClose={onClose}><form onSubmit={(e)=>{e.preventDefault();onSave(form)}} className="grid md:grid-cols-2 gap-4"><TextInput label="Event ID" value={form.id} onChange={v=>setForm({...form,id:v})}/><TextInput label="Title" value={form.title} onChange={v=>setForm({...form,title:v})}/><SelectInput label="Type" value={form.type} onChange={v=>setForm({...form,type:v as CalendarEvent['type']})} options={['Holiday','Exam','Meeting','Event']}/><TextInput label="Date" value={form.date} onChange={v=>setForm({...form,date:v})}/><TextInput label="Time" value={form.time} onChange={v=>setForm({...form,time:v})}/><TextInput label="Audience" value={form.audience} onChange={v=>setForm({...form,audience:v})}/><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Event</PrimaryButton></div></form></Modal> };
 
-const PrimaryButton = ({ children, onClick, type = 'button' }: { children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit' }) => (
-  <button type={type} onClick={onClick} className="rounded-2xl bg-red-600 text-white px-5 py-3 font-black shadow-lg shadow-red-600/20 hover:bg-red-700 transition-colors">{children}</button>
-);
-
-const SoftButton = ({ children, onClick, type = 'button' }: { children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit' }) => (
-  <button type={type} onClick={onClick} className="rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">{children}</button>
-);
-
-const DangerButton = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-  <button onClick={onClick} className="rounded-2xl bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 px-4 py-3 font-black hover:bg-red-100 dark:hover:bg-red-900 transition-colors">{children}</button>
-);
-
-const TextInput = ({ label, value, onChange, placeholder, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; type?: string }) => (
-  <label>
-    <span className="text-sm font-black text-slate-600 dark:text-slate-300">{label}</span>
-    <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder || label} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
-  </label>
-);
-
-const SelectInput = ({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) => (
-  <label>
-    <span className="text-sm font-black text-slate-600 dark:text-slate-300">{label}</span>
-    <select value={value} onChange={(e) => onChange(e.target.value)} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500">
-      {options.map((option) => <option key={option}>{option}</option>)}
-    </select>
-  </label>
-);
-
-const Modal = ({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-    <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-2xl">
-      <div className="sticky top-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between">
-        <h3 className="text-2xl font-black">{title}</h3>
-        <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 font-black">×</button>
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  </div>
-);
-
-const EmptyState = ({ title, subtitle }: { title: string; subtitle: string }) => (
-  <div className="text-center py-12">
-    <div className="text-5xl mb-4">🔍</div>
-    <h3 className="text-xl font-black">{title}</h3>
-    <p className="text-slate-500 dark:text-slate-400 mt-2">{subtitle}</p>
-  </div>
-);
-
-const SummaryCards = ({ items }: { items: { label: string; value: string; icon: string }[] }) => (
-  <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-    {items.map((item) => <Card key={item.label} className="p-5"><div className="flex items-center justify-between"><div><p className="text-slate-500 dark:text-slate-400 font-bold text-sm">{item.label}</p><h3 className="text-3xl font-black mt-1">{item.value}</h3></div><span className="text-4xl rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">{item.icon}</span></div></Card>)}
-  </div>
-);
-
-const StudentsPage = ({ onNavigate }: { onNavigate: (page: ErpPage) => void }) => {
-  const [studentList, setStudentList] = useState<Student[]>(initialStudents);
-  const [query, setQuery] = useState('');
-  const [classFilter, setClassFilter] = useState('All Classes');
-  const [editing, setEditing] = useState<Student | null>(null);
-  const [viewing, setViewing] = useState<Student | null>(null);
-
-  const filtered = useMemo(() => studentList.filter((s) => {
-    const matchesSearch = `${s.name} ${s.id} ${s.className} ${s.guardian}`.toLowerCase().includes(query.toLowerCase());
-    const matchesClass = classFilter === 'All Classes' || s.className === classFilter;
-    return matchesSearch && matchesClass;
-  }), [studentList, query, classFilter]);
-
-  const totalPending = studentList.filter((student) => student.fee !== 'Paid').length;
-
-  const saveStudent = (student: Student) => {
-    setStudentList((current) => current.some((item) => item.id === student.id) ? current.map((item) => item.id === student.id ? student : item) : [student, ...current]);
-    setEditing(null);
-  };
-
-  return (
-    <div>
-      <PageHeader title="Student Management" subtitle="Real working student records with add, edit, delete, search, filter and profile view." action={<div className="flex gap-2"><SoftButton onClick={() => onNavigate('admission')}>Admission Desk</SoftButton><PrimaryButton onClick={() => setEditing({ id: `GPS${String(studentList.length + 1).padStart(3, '0')}`, name: '', className: 'Class 8', section: 'A', guardian: '', phone: '', fee: 'Pending', attendance: '0%', address: '', status: 'Active' })}>＋ Add Student</PrimaryButton></div>} />
-      <SummaryCards items={[{ label: 'Total Students', value: String(studentList.length), icon: '🎓' }, { label: 'Active Students', value: String(studentList.filter((s) => s.status === 'Active').length), icon: '✅' }, { label: 'Pending Fees', value: String(totalPending), icon: '💳' }, { label: 'Average Attendance', value: '93%', icon: '📊' }]} />
-      <Card className="p-5 overflow-hidden">
-        <div className="grid md:grid-cols-[1fr_220px_auto] gap-3 mb-5">
-          <label className="relative"><span className="absolute left-4 top-3 text-slate-400">🔍</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by student name, ID, class or guardian..." className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" /></label>
-          <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 font-bold">{classOptions.map((option) => <option key={option}>{option}</option>)}</select>
-          <SoftButton>Export CSV</SoftButton>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[900px]">
-            <thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Student</th><th>ID</th><th>Class</th><th>Guardian</th><th>Fee</th><th>Attendance</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filtered.map((student) => <tr key={student.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">🎓 {student.name || 'New Student'}<p className="text-xs font-medium text-slate-500">{student.phone}</p></td><td className="font-bold">{student.id}</td><td>{student.className}-{student.section}</td><td>{student.guardian}</td><td><Status value={student.fee} /></td><td className="font-black">{student.attendance}</td><td><Status value={student.status} /></td><td><div className="flex gap-2"><button onClick={() => setViewing(student)} className="text-blue-600 font-black">View</button><button onClick={() => setEditing(student)} className="text-red-600 font-black">Edit</button><button onClick={() => setStudentList((current) => current.filter((item) => item.id !== student.id))} className="text-slate-500 font-black">Delete</button></div></td></tr>)}
-            </tbody>
-          </table>
-          {filtered.length === 0 && <EmptyState title="No students found" subtitle="Try changing search or class filter." />}
-        </div>
-      </Card>
-      {editing && <StudentForm student={editing} onClose={() => setEditing(null)} onSave={saveStudent} />}
-      {viewing && <StudentProfile student={viewing} onClose={() => setViewing(null)} />}
-    </div>
-  );
-};
-
-const StudentForm = ({ student, onClose, onSave }: { student: Student; onClose: () => void; onSave: (student: Student) => void }) => {
-  const [form, setForm] = useState<Student>(student);
-  return (
-    <Modal title={student.name ? 'Edit Student' : 'Add Student'} onClose={onClose}>
-      <form onSubmit={(event) => { event.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4">
-        <TextInput label="Student ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} />
-        <TextInput label="Student Name" value={form.name} onChange={(value) => setForm({ ...form, name: value })} />
-        <SelectInput label="Class" value={form.className} onChange={(value) => setForm({ ...form, className: value })} options={classOptions.filter((item) => item !== 'All Classes')} />
-        <SelectInput label="Section" value={form.section} onChange={(value) => setForm({ ...form, section: value })} options={['A', 'B', 'C', 'D']} />
-        <TextInput label="Guardian Name" value={form.guardian} onChange={(value) => setForm({ ...form, guardian: value })} />
-        <TextInput label="Phone Number" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
-        <SelectInput label="Fee Status" value={form.fee} onChange={(value) => setForm({ ...form, fee: value as Student['fee'] })} options={['Paid', 'Pending', 'Partial']} />
-        <TextInput label="Attendance" value={form.attendance} onChange={(value) => setForm({ ...form, attendance: value })} placeholder="95%" />
-        <label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Address</span><textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={3} /></label>
-        <div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Student</PrimaryButton></div>
-      </form>
-    </Modal>
-  );
-};
-
-const StudentProfile = ({ student, onClose }: { student: Student; onClose: () => void }) => (
-  <Modal title="Student Profile" onClose={onClose}>
-    <div className="grid lg:grid-cols-[240px_1fr] gap-6">
-      <Card className="p-6 text-center"><div className="w-28 h-28 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white mx-auto flex items-center justify-center text-5xl font-black">{student.name.charAt(0)}</div><h3 className="text-2xl font-black mt-4">{student.name}</h3><p className="text-slate-500">{student.id}</p><div className="mt-4"><Status value={student.status} /></div></Card>
-      <div className="grid md:grid-cols-2 gap-4">
-        {[['Class', `${student.className}-${student.section}`], ['Guardian', student.guardian], ['Phone', student.phone], ['Fee', student.fee], ['Attendance', student.attendance], ['Address', student.address]].map(([label, value]) => <Card key={label} className="p-5"><p className="text-sm text-slate-500 font-bold">{label}</p><h4 className="text-xl font-black mt-1">{value}</h4></Card>)}
-      </div>
-    </div>
-  </Modal>
-);
-
-const AdmissionPage = () => {
-  const [saved, setSaved] = useState(false);
-  return (
-    <div>
-      <PageHeader title="Admission Form" subtitle="Capture new admission inquiry and student details." />
-      {saved && <div className="mb-5 rounded-3xl bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 p-4 font-black">✅ Admission inquiry saved successfully.</div>}
-      <div className="grid xl:grid-cols-3 gap-6">
-        <Card className="xl:col-span-2 p-6">
-          <form onSubmit={(event) => { event.preventDefault(); setSaved(true); }} className="grid md:grid-cols-2 gap-4">
-            {['Student Name', 'Parent Name', 'Phone Number', 'Email Address', 'Class Applied For', 'Previous School'].map((label) => <TextInput key={label} label={label} value="" onChange={() => undefined} placeholder={label} />)}
-            <label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Address / Notes</span><textarea className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={4} placeholder="Enter address and notes" /></label>
-            <div className="md:col-span-2"><PrimaryButton type="submit">Save Admission Inquiry</PrimaryButton></div>
-          </form>
-        </Card>
-        <Card className="p-6"><h3 className="text-xl font-black mb-4">Admission Checklist</h3>{['Birth Certificate', 'Aadhaar Card', 'Transfer Certificate', 'Passport Photo', 'Previous Marksheet'].map((item) => <p key={item} className="rounded-2xl bg-slate-50 dark:bg-slate-800 px-4 py-3 mb-3 font-bold">✅ {item}</p>)}</Card>
-      </div>
-    </div>
-  );
-};
-
-const TeachersPage = () => {
-  const [teacherList, setTeacherList] = useState<Teacher[]>(initialTeachers);
-  const [query, setQuery] = useState('');
-  const [editing, setEditing] = useState<Teacher | null>(null);
-  const filtered = teacherList.filter((teacher) => `${teacher.name} ${teacher.subject} ${teacher.classes}`.toLowerCase().includes(query.toLowerCase()));
-  const saveTeacher = (teacher: Teacher) => { setTeacherList((current) => current.some((item) => item.id === teacher.id) ? current.map((item) => item.id === teacher.id ? teacher : item) : [teacher, ...current]); setEditing(null); };
-  return (
-    <div>
-      <PageHeader title="Teacher Management" subtitle="Manage teacher profiles, subjects and class assignments." action={<PrimaryButton onClick={() => setEditing({ id: `T${String(teacherList.length + 1).padStart(3, '0')}`, name: '', subject: '', classes: '', phone: '', email: '', status: 'Active' })}>＋ Add Teacher</PrimaryButton>} />
-      <SummaryCards items={[{ label: 'Total Teachers', value: String(teacherList.length), icon: '👩‍🏫' }, { label: 'Active', value: String(teacherList.filter((t) => t.status === 'Active').length), icon: '✅' }, { label: 'On Leave', value: String(teacherList.filter((t) => t.status === 'On Leave').length), icon: '🏖️' }, { label: 'Departments', value: '8', icon: '🏫' }]} />
-      <Card className="p-5 overflow-x-auto"><div className="mb-5"><label className="relative"><span className="absolute left-4 top-3 text-slate-400">🔍</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search teachers, subjects or classes..." className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" /></label></div><table className="w-full text-left min-w-[820px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Teacher</th><th>ID</th><th>Subject</th><th>Classes</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{filtered.map((t) => <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">👩‍🏫 {t.name}<p className="text-xs text-slate-500">{t.email}</p></td><td>{t.id}</td><td>{t.subject}</td><td>{t.classes}</td><td>{t.phone}</td><td><Status value={t.status} /></td><td><div className="flex gap-2"><button onClick={() => setEditing(t)} className="text-red-600 font-black">Edit</button><button onClick={() => setTeacherList((current) => current.filter((item) => item.id !== t.id))} className="text-slate-500 font-black">Delete</button></div></td></tr>)}</tbody></table></Card>
-      {editing && <TeacherForm teacher={editing} onClose={() => setEditing(null)} onSave={saveTeacher} />}
-    </div>
-  );
-};
-
-const TeacherForm = ({ teacher, onClose, onSave }: { teacher: Teacher; onClose: () => void; onSave: (teacher: Teacher) => void }) => {
-  const [form, setForm] = useState<Teacher>(teacher);
-  return <Modal title={teacher.name ? 'Edit Teacher' : 'Add Teacher'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Teacher ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Teacher Name" value={form.name} onChange={(value) => setForm({ ...form, name: value })} /><TextInput label="Subject" value={form.subject} onChange={(value) => setForm({ ...form, subject: value })} /><TextInput label="Assigned Classes" value={form.classes} onChange={(value) => setForm({ ...form, classes: value })} /><TextInput label="Phone" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} /><TextInput label="Email" value={form.email} onChange={(value) => setForm({ ...form, email: value })} /><SelectInput label="Status" value={form.status} onChange={(value) => setForm({ ...form, status: value as Teacher['status'] })} options={['Active', 'On Leave']} /><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Teacher</PrimaryButton></div></form></Modal>;
-};
-
-const AttendancePage = () => {
-  const [selectedClass, setSelectedClass] = useState('Class 8');
-  const [records, setRecords] = useState<AttendanceRecord[]>(initialStudents.map((s, i) => ({ studentId: s.id, status: i === 1 ? 'Absent' : 'Present' })));
-  const visibleStudents = initialStudents.filter((student) => student.className === selectedClass);
-  const setStatus = (studentId: string, status: AttendanceRecord['status']) => setRecords((current) => current.map((item) => item.studentId === studentId ? { ...item, status } : item));
-  const counts = records.reduce((acc, item) => ({ ...acc, [item.status]: (acc[item.status] || 0) + 1 }), {} as Record<string, number>);
-  return <div><PageHeader title="Attendance" subtitle="Mark daily attendance class-wise and track attendance percentage." action={<div className="flex gap-2"><select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 font-bold">{classOptions.filter((item) => item !== 'All Classes').map((item) => <option key={item}>{item}</option>)}</select><PrimaryButton>Save Attendance</PrimaryButton></div>} /><SummaryCards items={[{ label: 'Selected Class', value: selectedClass.replace('Class ', ''), icon: '🏫' }, { label: 'Present', value: String(counts.Present || 0), icon: '✅' }, { label: 'Absent', value: String(counts.Absent || 0), icon: '❌' }, { label: 'Leave', value: String(counts.Leave || 0), icon: '📝' }]} /><Card className="p-5"><div className="space-y-3">{visibleStudents.map((s) => { const record = records.find((item) => item.studentId === s.id)!; return <div key={s.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800 p-4"><div><h4 className="font-black">{s.name}</h4><p className="text-sm text-slate-500">{s.className}-{s.section} • {s.id}</p></div><div className="flex flex-wrap gap-2">{(['Present', 'Absent', 'Leave'] as AttendanceRecord['status'][]).map((status) => <button key={status} onClick={() => setStatus(s.id, status)} className={`rounded-xl px-4 py-2 font-black ${record.status === status ? status === 'Present' ? 'bg-green-100 text-green-700' : status === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700' : 'bg-white dark:bg-slate-900'}`}>{status}</button>)}</div></div>; })}</div></Card></div>;
-};
-
-const FeesPage = () => {
-  const [feeRecords, setFeeRecords] = useState<FeeRecord[]>(initialFees);
-  const [query, setQuery] = useState('');
-  const [receipt, setReceipt] = useState<FeeRecord | null>(null);
-  const filtered = feeRecords.filter((f) => `${f.student} ${f.receipt} ${f.className} ${f.month}`.toLowerCase().includes(query.toLowerCase()));
-  const collected = feeRecords.filter((f) => f.status === 'Paid').reduce((sum, item) => sum + item.amount, 0);
-  const pending = feeRecords.filter((f) => f.status !== 'Paid').reduce((sum, item) => sum + item.amount, 0);
-  return <div><PageHeader title="Fee Management" subtitle="Track paid, pending and partial fee records with receipt preview." action={<PrimaryButton onClick={() => setFeeRecords((current) => [{ receipt: `FEE-${1021 + current.length}`, student: 'New Student', className: '8-A', amount: 4500, month: 'July', status: 'Paid', date: 'Today' }, ...current])}>＋ Quick Collect</PrimaryButton>} /><SummaryCards items={[{ label: 'Collected', value: money(collected), icon: '💰' }, { label: 'Pending', value: money(pending), icon: '⏳' }, { label: 'Receipts', value: String(feeRecords.length), icon: '🧾' }, { label: 'Collection Rate', value: '82%', icon: '📈' }]} /><Card className="p-5 overflow-x-auto"><div className="mb-5"><label className="relative"><span className="absolute left-4 top-3 text-slate-400">🔍</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search fee receipt, student or month..." className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" /></label></div><table className="w-full text-left min-w-[800px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Receipt</th><th>Student</th><th>Class</th><th>Month</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{filtered.map((f) => <tr key={f.receipt} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">{f.receipt}</td><td>{f.student}</td><td>{f.className}</td><td>{f.month}</td><td className="font-black">{money(f.amount)}</td><td><Status value={f.status} /></td><td>{f.date}</td><td><button onClick={() => setReceipt(f)} className="text-red-600 font-black">Receipt</button></td></tr>)}</tbody></table></Card>{receipt && <Modal title="Fee Receipt Preview" onClose={() => setReceipt(null)}><div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-6"><div className="text-center mb-6"><h3 className="text-3xl font-black">Gurukul Pathshala</h3><p className="text-slate-500">Official Fee Receipt</p></div><div className="grid md:grid-cols-2 gap-4">{[['Receipt No', receipt.receipt], ['Student', receipt.student], ['Class', receipt.className], ['Month', receipt.month], ['Amount', money(receipt.amount)], ['Status', receipt.status], ['Date', receipt.date]].map(([a,b]) => <div key={a} className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4"><p className="text-sm text-slate-500 font-bold">{a}</p><h4 className="font-black text-xl">{b}</h4></div>)}</div><div className="mt-6 flex justify-end"><PrimaryButton>Print Receipt</PrimaryButton></div></div></Modal>}</div>;
-};
-
-const NoticesPage = () => {
-  const [noticeList, setNoticeList] = useState<Notice[]>(initialNotices);
-  const [editing, setEditing] = useState<Notice | null>(null);
-  const saveNotice = (notice: Notice) => { setNoticeList((current) => current.some((item) => item.id === notice.id) ? current.map((item) => item.id === notice.id ? notice : item) : [notice, ...current]); setEditing(null); };
-  return <div><PageHeader title="Notice Board" subtitle="Create and manage notices for students, teachers and parents." action={<PrimaryButton onClick={() => setEditing({ id: `N${String(noticeList.length + 1).padStart(3, '0')}`, title: '', audience: 'All Students', date: 'Today', priority: 'Normal', message: '' })}>＋ Create Notice</PrimaryButton>} /><div className="grid lg:grid-cols-3 gap-5">{noticeList.map((n) => <Card key={n.id} className="p-6 hover:-translate-y-1 transition-transform"><div className="flex items-start justify-between gap-4"><span className="text-4xl">📢</span><Status value={n.priority} /></div><h3 className="text-xl font-black mt-5">{n.title}</h3><p className="text-slate-500 mt-2">Audience: {n.audience}</p><p className="text-slate-600 dark:text-slate-300 mt-3">{n.message}</p><p className="font-bold mt-4">📅 {n.date}</p><div className="mt-5 flex gap-2"><SoftButton onClick={() => setEditing(n)}>Edit</SoftButton><DangerButton onClick={() => setNoticeList((current) => current.filter((item) => item.id !== n.id))}>Delete</DangerButton></div></Card>)}</div>{editing && <NoticeForm notice={editing} onClose={() => setEditing(null)} onSave={saveNotice} />}</div>;
-};
-
-const NoticeForm = ({ notice, onClose, onSave }: { notice: Notice; onClose: () => void; onSave: (notice: Notice) => void }) => {
-  const [form, setForm] = useState<Notice>(notice);
-  return <Modal title={notice.title ? 'Edit Notice' : 'Create Notice'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Notice ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} /><TextInput label="Audience" value={form.audience} onChange={(value) => setForm({ ...form, audience: value })} /><SelectInput label="Priority" value={form.priority} onChange={(value) => setForm({ ...form, priority: value as Notice['priority'] })} options={['High', 'Medium', 'Normal']} /><TextInput label="Date" value={form.date} onChange={(value) => setForm({ ...form, date: value })} /><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Message</span><textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={4} /></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Notice</PrimaryButton></div></form></Modal>;
-};
-
-
-type Homework = {
-  id: string;
-  title: string;
-  subject: string;
-  className: string;
-  teacher: string;
-  dueDate: string;
-  status: 'Draft' | 'Assigned' | 'Checked';
-  submissions: number;
-  description: string;
-};
-
-type MarkRecord = {
-  id: string;
-  student: string;
-  className: string;
-  exam: string;
-  math: number;
-  science: number;
-  english: number;
-  computer: number;
-};
-
-type MessageItem = {
-  id: string;
-  from: string;
-  to: string;
-  subject: string;
-  message: string;
-  time: string;
-  unread: boolean;
-};
-
-type CalendarEvent = {
-  id: string;
-  title: string;
-  type: 'Holiday' | 'Exam' | 'Meeting' | 'Event';
-  date: string;
-  time: string;
-  audience: string;
-};
-
-const initialHomework: Homework[] = [
-  { id: 'HW001', title: 'Algebra Practice Set', subject: 'Mathematics', className: 'Class 8', teacher: 'Neha Mishra', dueDate: '08 Jul 2026', status: 'Assigned', submissions: 32, description: 'Solve questions 1 to 20 from chapter Algebra and upload notebook photo.' },
-  { id: 'HW002', title: 'Science Project Notes', subject: 'Science', className: 'Class 7', teacher: 'Amit Kumar', dueDate: '10 Jul 2026', status: 'Assigned', submissions: 24, description: 'Prepare a short note on renewable energy with diagram.' },
-  { id: 'HW003', title: 'English Essay', subject: 'English', className: 'Class 6', teacher: 'Priya Singh', dueDate: '12 Jul 2026', status: 'Draft', submissions: 0, description: 'Essay topic: My School, minimum 250 words.' },
-];
-
-const initialMarks: MarkRecord[] = [
-  { id: 'MRK001', student: 'Aarav Sharma', className: 'Class 8-A', exam: 'Unit Test 1', math: 88, science: 91, english: 84, computer: 96 },
-  { id: 'MRK002', student: 'Ananya Singh', className: 'Class 7-B', exam: 'Unit Test 1', math: 81, science: 89, english: 92, computer: 90 },
-  { id: 'MRK003', student: 'Kabir Verma', className: 'Class 6-A', exam: 'Unit Test 1', math: 76, science: 83, english: 79, computer: 88 },
-];
-
-const initialMessages: MessageItem[] = [
-  { id: 'MSG001', from: 'Admin Office', to: 'All Teachers', subject: 'PTM Preparation', message: 'Please prepare student progress files before PTM.', time: '10:20 AM', unread: true },
-  { id: 'MSG002', from: 'Neha Mishra', to: 'Class 8 Students', subject: 'Math Homework Reminder', message: 'Submit algebra worksheet before Friday.', time: '11:05 AM', unread: true },
-  { id: 'MSG003', from: 'Parent - Aarav', to: 'Admin Office', subject: 'Fee Receipt Request', message: 'Please share fee receipt for July.', time: 'Yesterday', unread: false },
-];
-
-const initialCalendarEvents: CalendarEvent[] = [
-  { id: 'EV001', title: 'Parent Teacher Meeting', type: 'Meeting', date: '05 Jul 2026', time: '10:00 AM', audience: 'All Parents' },
-  { id: 'EV002', title: 'Unit Test Starts', type: 'Exam', date: '12 Jul 2026', time: '09:00 AM', audience: 'Class 4 to 8' },
-  { id: 'EV003', title: 'Guru Purnima Holiday', type: 'Holiday', date: '21 Jul 2026', time: 'Full Day', audience: 'All' },
-  { id: 'EV004', title: 'Science Exhibition', type: 'Event', date: '25 Jul 2026', time: '11:00 AM', audience: 'Class 6 to 8' },
-];
-
-const gradeFor = (percentage: number) => percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B+' : percentage >= 60 ? 'B' : 'C';
-
-const HomeworkPage = () => {
-  const [homeworkList, setHomeworkList] = useState<Homework[]>(initialHomework);
-  const [query, setQuery] = useState('');
-  const [editing, setEditing] = useState<Homework | null>(null);
-  const filtered = homeworkList.filter((h) => `${h.title} ${h.subject} ${h.className} ${h.teacher}`.toLowerCase().includes(query.toLowerCase()));
-  const saveHomework = (homework: Homework) => { setHomeworkList((current) => current.some((item) => item.id === homework.id) ? current.map((item) => item.id === homework.id ? homework : item) : [homework, ...current]); setEditing(null); };
-  return <div><PageHeader title="Homework" subtitle="Create, assign, edit, delete and track homework submissions." action={<PrimaryButton onClick={() => setEditing({ id: `HW${String(homeworkList.length + 1).padStart(3, '0')}`, title: '', subject: 'Mathematics', className: 'Class 8', teacher: 'Neha Mishra', dueDate: 'Today', status: 'Draft', submissions: 0, description: '' })}>＋ Add Homework</PrimaryButton>} /><SummaryCards items={[{ label: 'Total Homework', value: String(homeworkList.length), icon: '📝' }, { label: 'Assigned', value: String(homeworkList.filter((h) => h.status === 'Assigned').length), icon: '✅' }, { label: 'Draft', value: String(homeworkList.filter((h) => h.status === 'Draft').length), icon: '✍️' }, { label: 'Submissions', value: String(homeworkList.reduce((sum, h) => sum + h.submissions, 0)), icon: '📥' }]} /><Card className="p-5"><label className="relative block mb-5"><span className="absolute left-4 top-3 text-slate-400">🔍</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search homework by title, subject, class or teacher..." className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-red-500" /></label><div className="grid lg:grid-cols-3 gap-5">{filtered.map((h) => <div key={h.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5 border border-slate-100 dark:border-slate-700"><div className="flex items-start justify-between"><span className="text-4xl">📝</span><Status value={h.status} /></div><h3 className="text-xl font-black mt-4">{h.title}</h3><p className="text-slate-500 font-bold mt-1">{h.subject} • {h.className}</p><p className="text-sm text-slate-600 dark:text-slate-300 mt-3">{h.description}</p><div className="grid grid-cols-2 gap-3 mt-4"><div className="rounded-2xl bg-white dark:bg-slate-900 p-3"><p className="text-xs text-slate-500 font-bold">Due Date</p><p className="font-black">{h.dueDate}</p></div><div className="rounded-2xl bg-white dark:bg-slate-900 p-3"><p className="text-xs text-slate-500 font-bold">Submitted</p><p className="font-black">{h.submissions}</p></div></div><div className="flex gap-2 mt-5"><SoftButton onClick={() => setEditing(h)}>Edit</SoftButton><DangerButton onClick={() => setHomeworkList((current) => current.filter((item) => item.id !== h.id))}>Delete</DangerButton></div></div>)}</div>{filtered.length === 0 && <EmptyState title="No homework found" subtitle="Try another search keyword." />}</Card>{editing && <HomeworkForm homework={editing} onClose={() => setEditing(null)} onSave={saveHomework} />}</div>;
-};
-
-const HomeworkForm = ({ homework, onClose, onSave }: { homework: Homework; onClose: () => void; onSave: (homework: Homework) => void }) => {
-  const [form, setForm] = useState<Homework>(homework);
-  return <Modal title={homework.title ? 'Edit Homework' : 'Add Homework'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Homework ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} /><SelectInput label="Subject" value={form.subject} onChange={(value) => setForm({ ...form, subject: value })} options={['Mathematics', 'Science', 'English', 'Computer', 'Hindi']} /><SelectInput label="Class" value={form.className} onChange={(value) => setForm({ ...form, className: value })} options={classOptions.filter((item) => item !== 'All Classes')} /><TextInput label="Teacher" value={form.teacher} onChange={(value) => setForm({ ...form, teacher: value })} /><TextInput label="Due Date" value={form.dueDate} onChange={(value) => setForm({ ...form, dueDate: value })} /><SelectInput label="Status" value={form.status} onChange={(value) => setForm({ ...form, status: value as Homework['status'] })} options={['Draft', 'Assigned', 'Checked']} /><TextInput label="Submissions" type="number" value={String(form.submissions)} onChange={(value) => setForm({ ...form, submissions: Number(value) || 0 })} /><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Description / Instructions</span><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={4} /></label><div className="md:col-span-2 rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 text-sm text-slate-500">📎 Attachment upload UI ready. Backend/storage connect karne par real file upload work karega.</div><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Homework</PrimaryButton></div></form></Modal>;
-};
-
-const MarksPage = () => {
-  const [records, setRecords] = useState<MarkRecord[]>(initialMarks);
-  const [editing, setEditing] = useState<MarkRecord | null>(null);
-  const saveRecord = (record: MarkRecord) => { setRecords((current) => current.some((item) => item.id === record.id) ? current.map((item) => item.id === record.id ? record : item) : [record, ...current]); setEditing(null); };
-  const top = records.map((r) => ({ ...r, total: r.math + r.science + r.english + r.computer })).sort((a, b) => b.total - a.total)[0];
-  return <div><PageHeader title="Marks" subtitle="Subject-wise marks, percentage, grade and report card preview." action={<PrimaryButton onClick={() => setEditing({ id: `MRK${String(records.length + 1).padStart(3, '0')}`, student: '', className: 'Class 8-A', exam: 'Unit Test 1', math: 0, science: 0, english: 0, computer: 0 })}>＋ Add Marks</PrimaryButton>} /><SummaryCards items={[{ label: 'Mark Records', value: String(records.length), icon: '🏆' }, { label: 'Topper', value: top ? top.student.split(' ')[0] : '-', icon: '🥇' }, { label: 'Average', value: `${Math.round(records.reduce((sum, r) => sum + (r.math + r.science + r.english + r.computer) / 4, 0) / records.length)}%`, icon: '📊' }, { label: 'Report Cards', value: String(records.length), icon: '📄' }]} /><Card className="p-5 overflow-x-auto"><table className="w-full text-left min-w-[900px]"><thead className="text-xs uppercase text-slate-500 border-b border-slate-200 dark:border-slate-800"><tr><th className="py-3">Student</th><th>Class</th><th>Exam</th><th>Math</th><th>Science</th><th>English</th><th>Computer</th><th>%</th><th>Grade</th><th>Action</th></tr></thead><tbody className="divide-y divide-slate-100 dark:divide-slate-800">{records.map((r) => { const total = r.math + r.science + r.english + r.computer; const pct = Math.round(total / 4); return <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60"><td className="py-4 font-black">{r.student}</td><td>{r.className}</td><td>{r.exam}</td><td>{r.math}</td><td>{r.science}</td><td>{r.english}</td><td>{r.computer}</td><td className="font-black">{pct}%</td><td><Status value={gradeFor(pct)} /></td><td><div className="flex gap-2"><button onClick={() => setEditing(r)} className="text-red-600 font-black">Edit</button><button onClick={() => setRecords((current) => current.filter((item) => item.id !== r.id))} className="text-slate-500 font-black">Delete</button></div></td></tr>; })}</tbody></table></Card>{top && <Card className="p-6 mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950 dark:to-slate-900"><h3 className="text-2xl font-black">🥇 Topper Report Card Preview</h3><p className="mt-2 text-slate-600 dark:text-slate-300">{top.student} scored {Math.round(top.total / 4)}% in {top.exam}. Grade: {gradeFor(Math.round(top.total / 4))}</p></Card>}{editing && <MarksForm record={editing} onClose={() => setEditing(null)} onSave={saveRecord} />}</div>;
-};
-
-const MarksForm = ({ record, onClose, onSave }: { record: MarkRecord; onClose: () => void; onSave: (record: MarkRecord) => void }) => {
-  const [form, setForm] = useState<MarkRecord>(record);
-  return <Modal title={record.student ? 'Edit Marks' : 'Add Marks'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Record ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Student Name" value={form.student} onChange={(value) => setForm({ ...form, student: value })} /><TextInput label="Class" value={form.className} onChange={(value) => setForm({ ...form, className: value })} /><TextInput label="Exam" value={form.exam} onChange={(value) => setForm({ ...form, exam: value })} />{(['math','science','english','computer'] as const).map((key) => <TextInput key={key} label={key.charAt(0).toUpperCase() + key.slice(1)} type="number" value={String(form[key])} onChange={(value) => setForm({ ...form, [key]: Number(value) || 0 })} />)}<div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Marks</PrimaryButton></div></form></Modal>;
-};
-
-const MessagesPage = () => {
-  const [messages, setMessages] = useState<MessageItem[]>(initialMessages);
-  const [composeOpen, setComposeOpen] = useState(false);
-  const [selected, setSelected] = useState<MessageItem | null>(null);
-  const sendMessage = (message: MessageItem) => { setMessages((current) => [message, ...current]); setComposeOpen(false); };
-  return <div><PageHeader title="Messages" subtitle="Inbox, unread messages and admin broadcast system." action={<PrimaryButton onClick={() => setComposeOpen(true)}>＋ Send Message</PrimaryButton>} /><SummaryCards items={[{ label: 'Total Messages', value: String(messages.length), icon: '💬' }, { label: 'Unread', value: String(messages.filter((m) => m.unread).length), icon: '🔔' }, { label: 'Broadcasts', value: '2', icon: '📣' }, { label: 'Today', value: '5', icon: '📨' }]} /><div className="grid lg:grid-cols-[1fr_380px] gap-6"><Card className="p-4"><div className="space-y-3">{messages.map((m) => <button key={m.id} onClick={() => { setSelected(m); setMessages((current) => current.map((item) => item.id === m.id ? { ...item, unread: false } : item)); }} className={`w-full text-left rounded-3xl p-5 border transition-all ${m.unread ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}><div className="flex items-start justify-between gap-3"><div><h3 className="font-black text-lg">{m.subject}</h3><p className="text-sm text-slate-500 mt-1">From: {m.from} → {m.to}</p></div><span className="text-xs font-black text-slate-500">{m.time}</span></div><p className="mt-3 text-slate-600 dark:text-slate-300 line-clamp-2">{m.message}</p></button>)}</div></Card><Card className="p-6"><h3 className="text-2xl font-black">Message Preview</h3>{selected ? <div className="mt-5"><p className="text-sm font-bold text-slate-500">{selected.from} → {selected.to}</p><h4 className="text-xl font-black mt-2">{selected.subject}</h4><p className="mt-4 text-slate-600 dark:text-slate-300">{selected.message}</p><div className="mt-6 flex gap-2"><SoftButton>Reply</SoftButton><DangerButton onClick={() => setMessages((current) => current.filter((item) => item.id !== selected.id))}>Delete</DangerButton></div></div> : <EmptyState title="No message selected" subtitle="Click any message to view details." />}</Card></div>{composeOpen && <MessageForm onClose={() => setComposeOpen(false)} onSave={sendMessage} />}</div>;
-};
-
-const MessageForm = ({ onClose, onSave }: { onClose: () => void; onSave: (message: MessageItem) => void }) => {
-  const [form, setForm] = useState<MessageItem>({ id: `MSG${Date.now().toString().slice(-4)}`, from: 'Admin Office', to: 'All Students', subject: '', message: '', time: 'Now', unread: true });
-  return <Modal title="Send Message" onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="From" value={form.from} onChange={(value) => setForm({ ...form, from: value })} /><TextInput label="To" value={form.to} onChange={(value) => setForm({ ...form, to: value })} /><TextInput label="Subject" value={form.subject} onChange={(value) => setForm({ ...form, subject: value })} /><SelectInput label="Priority" value={form.unread ? 'Unread' : 'Normal'} onChange={(value) => setForm({ ...form, unread: value === 'Unread' })} options={['Unread', 'Normal']} /><label className="md:col-span-2"><span className="text-sm font-black text-slate-600 dark:text-slate-300">Message</span><textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="mt-2 w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" rows={5} /></label><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Send Message</PrimaryButton></div></form></Modal>;
-};
-
-const CalendarPage = () => {
-  const [events, setEvents] = useState<CalendarEvent[]>(initialCalendarEvents);
-  const [editing, setEditing] = useState<CalendarEvent | null>(null);
-  const saveEvent = (event: CalendarEvent) => { setEvents((current) => current.some((item) => item.id === event.id) ? current.map((item) => item.id === event.id ? event : item) : [event, ...current]); setEditing(null); };
-  const days = Array.from({ length: 30 }, (_, i) => i + 1);
-  return <div><PageHeader title="Calendar" subtitle="Monthly school calendar with holidays, exams, events and meetings." action={<PrimaryButton onClick={() => setEditing({ id: `EV${String(events.length + 1).padStart(3, '0')}`, title: '', type: 'Event', date: 'Today', time: '10:00 AM', audience: 'All' })}>＋ Add Event</PrimaryButton>} /><SummaryCards items={[{ label: 'Events', value: String(events.length), icon: '🗓️' }, { label: 'Exams', value: String(events.filter((e) => e.type === 'Exam').length), icon: '🏆' }, { label: 'Holidays', value: String(events.filter((e) => e.type === 'Holiday').length), icon: '🎉' }, { label: 'Meetings', value: String(events.filter((e) => e.type === 'Meeting').length), icon: '👥' }]} /><div className="grid xl:grid-cols-[1fr_420px] gap-6"><Card className="p-5"><div className="flex items-center justify-between mb-5"><h3 className="text-2xl font-black">July 2026</h3><div className="flex gap-2"><SoftButton>←</SoftButton><SoftButton>→</SoftButton></div></div><div className="grid grid-cols-7 gap-2 text-center text-xs font-black text-slate-500 mb-2">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d) => <span key={d}>{d}</span>)}</div><div className="grid grid-cols-7 gap-2">{days.map((day) => { const hasEvent = events.some((e) => e.date.includes(String(day).padStart(2, '0')) || e.date.startsWith(String(day))); return <button key={day} className={`aspect-square rounded-2xl border font-black ${hasEvent ? 'bg-red-600 text-white border-red-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>{day}</button>; })}</div></Card><Card className="p-5"><h3 className="text-2xl font-black mb-4">Upcoming Schedule</h3><div className="space-y-3">{events.map((event) => <div key={event.id} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-4"><div className="flex justify-between gap-3"><div><h4 className="font-black">{event.title}</h4><p className="text-sm text-slate-500">{event.date} • {event.time}</p><p className="text-sm text-slate-500">Audience: {event.audience}</p></div><Status value={event.type} /></div><div className="mt-3 flex gap-2"><button onClick={() => setEditing(event)} className="text-red-600 font-black">Edit</button><button onClick={() => setEvents((current) => current.filter((item) => item.id !== event.id))} className="text-slate-500 font-black">Delete</button></div></div>)}</div></Card></div>{editing && <CalendarForm event={editing} onClose={() => setEditing(null)} onSave={saveEvent} />}</div>;
-};
-
-const CalendarForm = ({ event, onClose, onSave }: { event: CalendarEvent; onClose: () => void; onSave: (event: CalendarEvent) => void }) => {
-  const [form, setForm] = useState<CalendarEvent>(event);
-  return <Modal title={event.title ? 'Edit Event' : 'Add Event'} onClose={onClose}><form onSubmit={(e) => { e.preventDefault(); onSave(form); }} className="grid md:grid-cols-2 gap-4"><TextInput label="Event ID" value={form.id} onChange={(value) => setForm({ ...form, id: value })} /><TextInput label="Title" value={form.title} onChange={(value) => setForm({ ...form, title: value })} /><SelectInput label="Type" value={form.type} onChange={(value) => setForm({ ...form, type: value as CalendarEvent['type'] })} options={['Holiday', 'Exam', 'Meeting', 'Event']} /><TextInput label="Date" value={form.date} onChange={(value) => setForm({ ...form, date: value })} /><TextInput label="Time" value={form.time} onChange={(value) => setForm({ ...form, time: value })} /><TextInput label="Audience" value={form.audience} onChange={(value) => setForm({ ...form, audience: value })} /><div className="md:col-span-2 flex justify-end gap-3"><SoftButton onClick={onClose}>Cancel</SoftButton><PrimaryButton type="submit">Save Event</PrimaryButton></div></form></Modal>;
-};
-
-const SettingsPage = ({ role }: { role: UserRole }) => {
-  const [schoolName, setSchoolName] = useState('Gurukul Pathshala');
-  const [session, setSession] = useState('2026-2027');
-  const [language, setLanguage] = useState('English + Hindi');
-  const [theme, setTheme] = useState('System Default');
-  const [saved, setSaved] = useState(false);
-  return <div><PageHeader title="Settings" subtitle="School profile, theme, language, academic session and user security." action={<PrimaryButton onClick={() => { setSaved(true); window.setTimeout(() => setSaved(false), 2000); }}>Save Settings</PrimaryButton>} /><SummaryCards items={[{ label: 'Current Role', value: role, icon: '👤' }, { label: 'Session', value: session, icon: '📅' }, { label: 'Theme', value: theme.split(' ')[0], icon: '🎨' }, { label: 'Security', value: 'Good', icon: '🔐' }]} />{saved && <div className="mb-5 rounded-2xl bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 px-5 py-4 font-black">✅ Settings saved successfully.</div>}<div className="grid xl:grid-cols-2 gap-6"><Card className="p-6"><h3 className="text-2xl font-black mb-5">School Profile</h3><div className="grid gap-4"><TextInput label="School Name" value={schoolName} onChange={setSchoolName} /><TextInput label="Academic Session" value={session} onChange={setSession} /><SelectInput label="Language" value={language} onChange={setLanguage} options={['English + Hindi', 'English', 'Hindi']} /><SelectInput label="Theme Preference" value={theme} onChange={setTheme} options={['System Default', 'Light Mode', 'Dark Mode']} /><div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 text-sm text-slate-500">🖼️ Logo change UI ready. Actual image upload backend connect hone ke baad permanent save hoga.</div></div></Card><Card className="p-6"><h3 className="text-2xl font-black mb-5">User & Security</h3><div className="space-y-4"><TextInput label="User Name" value={role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Teacher User' : 'Student User'} onChange={() => {}} /><TextInput label="Email" value={`${role}@gurukulerp.com`} onChange={() => {}} /><TextInput label="New Password" type="password" value="" onChange={() => {}} placeholder="Enter new password" /><TextInput label="Confirm Password" type="password" value="" onChange={() => {}} placeholder="Confirm password" /><div className="flex gap-3"><SoftButton>Update Profile</SoftButton><DangerButton>Logout All Devices</DangerButton></div></div></Card></div></div>;
-};
-
-const ExaminationPage = () => <MarksPage />;
-const LibraryPage = () => <ModuleWithTable title="Library" subtitle="Book issue, return and library inventory." icon="📚" rows={['Issue Book', 'Return Book', 'Overdue List', 'Book Inventory']} />;
-const TransportPage = () => <ModuleWithTable title="Transport" subtitle="Route, bus, driver and student transport management." icon="🚌" rows={['Route A - BLW', 'Route B - Lanka', 'Driver List', 'Bus Attendance']} />;
-const ResultPage = () => <MarksPage />;
-
-const ModuleWithTable = ({ title, subtitle, icon, rows }: { title: string; subtitle: string; icon: string; rows: string[] }) => (
-  <div><PageHeader title={title} subtitle={subtitle} action={<PrimaryButton>＋ Add New</PrimaryButton>} /><SummaryCards items={[{ label: 'Total Records', value: String(rows.length), icon }, { label: 'Pending', value: '2', icon: '⏳' }, { label: 'Completed', value: '8', icon: '✅' }, { label: 'Reports', value: '4', icon: '📄' }]} /><Card className="p-5"><div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">{rows.map((row, index) => <div key={row} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5"><span className="text-4xl">{icon}</span><h3 className="font-black text-lg mt-4">{row}</h3><p className="text-slate-500 text-sm mt-2">Record #{index + 1}</p><button className="mt-4 text-red-600 font-black">Open →</button></div>)}</div></Card></div>
-);
-
-const SimpleModule = ({ page, role }: { page: ErpPage; role: UserRole }) => {
-  const title = pageTitles[page] || 'Module';
-  const cards = [
-    ['Overview', 'Live summary and important KPIs', '📊'],
-    ['Records', 'Search and manage module records', '📁'],
-    ['Reports', 'PDF/Excel export ready area', '📄'],
-    ['Settings', 'Module configuration panel', '⚙️'],
-  ];
-  return <div><PageHeader title={title} subtitle={`${title} module is connected for ${role} portal. Detailed database integration can be added in the next backend version.`} /><div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">{cards.map(([a,b,c]) => <Card key={a} className="p-6"><span className="text-4xl">{c}</span><h3 className="text-xl font-black mt-4">{a}</h3><p className="text-slate-500 dark:text-slate-400 mt-2">{b}</p><button className="mt-5 rounded-2xl bg-slate-100 dark:bg-slate-800 px-4 py-3 font-black hover:bg-red-600 hover:text-white transition-colors">Open</button></Card>)}</div></div>;
-};
+const SettingsPage = ({role,store,patch,reset}:{role:UserRole;store:ErpStore;patch:ReturnType<typeof useErpStore>['patch'];reset:()=>void}) => { const [form,setForm]=useState(store.settings); const [saved,setSaved]=useState(false); return <div><PageHeader title="Settings" subtitle="School profile and shared data controls." action={<PrimaryButton onClick={()=>{patch('settings',form);setSaved(true);setTimeout(()=>setSaved(false),2000)}}>Save Settings</PrimaryButton>}/>{saved&&<div className="mb-5 rounded-2xl bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 px-5 py-4 font-black">✅ Settings saved in shared store.</div>}<div className="grid xl:grid-cols-2 gap-6"><Card className="p-6"><h3 className="text-2xl font-black mb-5">School Profile</h3><div className="grid gap-4"><TextInput label="School Name" value={form.schoolName} onChange={v=>setForm({...form,schoolName:v})}/><TextInput label="Academic Session" value={form.session} onChange={v=>setForm({...form,session:v})}/><SelectInput label="Language" value={form.language} onChange={v=>setForm({...form,language:v})} options={['English + Hindi','English','Hindi']}/><SelectInput label="Theme Preference" value={form.theme} onChange={v=>setForm({...form,theme:v})} options={['System Default','Light Mode','Dark Mode']}/></div></Card><Card className="p-6"><h3 className="text-2xl font-black mb-5">Data Sync Controls</h3><p className="text-slate-500 mb-4">Current Role: <b>{roleName(role)}</b></p><p className="text-slate-500 mb-4">Data is stored in browser localStorage for demo. Later it can connect to Firebase/Supabase.</p><DangerButton onClick={reset}>Reset Demo Data</DangerButton></Card></div></div> };
+const AdmissionPage = ({store,patch}:{store:ErpStore;patch:ReturnType<typeof useErpStore>['patch']}) => <StudentsPage role="admin" store={store} patch={patch} onNavigate={()=>{}} />;
+const ModuleWithTable = ({title,subtitle,icon,rows}:{title:string;subtitle:string;icon:string;rows:string[]}) => <div><PageHeader title={title} subtitle={subtitle} action={<PrimaryButton>＋ Add New</PrimaryButton>}/><Card className="p-5"><div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">{rows.map((row,i)=><div key={row} className="rounded-3xl bg-slate-50 dark:bg-slate-800 p-5"><span className="text-4xl">{icon}</span><h3 className="font-black text-lg mt-4">{row}</h3><p className="text-slate-500 text-sm mt-2">Record #{i+1}</p><button className="mt-4 text-red-600 font-black">Open →</button></div>)}</div></Card></div>;
+const SimpleModule = ({page,role}:{page:ErpPage;role:UserRole}) => <div><PageHeader title={page.charAt(0).toUpperCase()+page.slice(1)} subtitle={`Module connected for ${role} portal. More detail can be added next.`}/><SummaryCards items={[{label:'Overview',value:'Live',icon:'📊'},{label:'Records',value:'Ready',icon:'📁'},{label:'Reports',value:'PDF',icon:'📄'},{label:'Settings',value:'OK',icon:'⚙️'}]}/></div>;
 
 const ErpPages = ({ role, page, onNavigate }: ErpPagesProps) => {
-  if (page === 'students') return <StudentsPage onNavigate={onNavigate} />;
-  if (page === 'admission') return <AdmissionPage />;
-  if (page === 'teachers') return <TeachersPage />;
-  if (page === 'attendance') return <AttendancePage />;
-  if (page === 'fees') return <FeesPage />;
-  if (page === 'notices') return <NoticesPage />;
-  if (page === 'examination' || page === 'marks') return <MarksPage />;
-  if (page === 'library') return <LibraryPage />;
-  if (page === 'transport') return <TransportPage />;
-  if (page === 'homework') return <HomeworkPage />;
-  if (page === 'messages') return <MessagesPage />;
-  if (page === 'calendar') return <CalendarPage />;
-  if (page === 'settings') return <SettingsPage role={role} />;
-  if (page === 'result') return <ResultPage />;
-  return <SimpleModule page={page} role={role} />;
+  const { store, patch, reset } = useErpStore();
+  if (page === 'students' || page === 'profile') return <StudentsPage role={role} store={store} patch={patch} onNavigate={onNavigate}/>;
+  if (page === 'admission') return <AdmissionPage store={store} patch={patch}/>;
+  if (page === 'teachers') return <TeachersPage role={role} store={store} patch={patch}/>;
+  if (page === 'attendance') return <AttendancePage role={role} store={store} patch={patch}/>;
+  if (page === 'fees') return <FeesPage role={role} store={store} patch={patch}/>;
+  if (page === 'notices') return <NoticesPage role={role} store={store} patch={patch}/>;
+  if (page === 'examination' || page === 'marks' || page === 'result') return <MarksPage role={role} store={store} patch={patch}/>;
+  if (page === 'homework') return <HomeworkPage role={role} store={store} patch={patch}/>;
+  if (page === 'messages') return <MessagesPage role={role} store={store} patch={patch}/>;
+  if (page === 'calendar') return <CalendarPage role={role} store={store} patch={patch}/>;
+  if (page === 'settings') return <SettingsPage role={role} store={store} patch={patch} reset={reset}/>;
+  if (page === 'library') return <ModuleWithTable title="Library" subtitle="Book issue, return and inventory." icon="📚" rows={['Issue Book','Return Book','Overdue List','Book Inventory']}/>;
+  if (page === 'transport') return <ModuleWithTable title="Transport" subtitle="Route, bus and driver management." icon="🚌" rows={['Route A - BLW','Route B - Lanka','Driver List','Bus Attendance']}/>;
+  return <SimpleModule page={page} role={role}/>;
 };
 
 export default ErpPages;
