@@ -47,3 +47,13 @@
 ### Tested
 - `npm run build` completed successfully.
 
+
+## Day 2 Functional v2
+
+- Student Management upgraded with add, edit, delete, search, class filter and student profile modal.
+- Teacher Management upgraded with add, edit, delete and search.
+- Attendance module upgraded with class selector and present/absent/leave toggles.
+- Fee Management upgraded with quick collection, search and receipt preview modal.
+- Notice Board upgraded with create, edit and delete notice workflow.
+- Examination, Library, Transport, Homework and Result modules now show professional working module screens.
+- All updates are frontend-only demo state for now and ready for future backend/database integration.
