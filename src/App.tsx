@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { schoolConfig } from './config/schoolData';
+import ErpApp from './erp/ErpApp';
 
 // ============================================
 // UTILITY COMPONENTS
@@ -58,7 +59,7 @@ const Button = ({
 // ============================================
 // HEADER COMPONENT
 // ============================================
-const Header = () => {
+const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -122,6 +123,12 @@ const Header = () => {
                 {link.name}
               </a>
             ))}
+            <button
+              onClick={onOpenLogin}
+              className={`px-5 py-3 rounded-lg font-bold transition-all ${isScrolled ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-red-600 hover:bg-red-50'}`}
+            >
+              ERP Login
+            </button>
             <Button variant={isScrolled ? 'primary' : 'secondary'}>
               <a href="#admission" className="block">Admission Open</a>
             </Button>
@@ -155,7 +162,13 @@ const Header = () => {
                 {link.name}
               </a>
             ))}
-            <div className="px-4 py-3">
+            <div className="px-4 py-3 space-y-3">
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); onOpenLogin(); }}
+                className="w-full px-6 py-3 rounded-lg font-bold bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+              >
+                ERP Login
+              </button>
               <Button className="w-full">
                 <a href="#admission" className="block">Admission Open</a>
               </Button>
@@ -1172,7 +1185,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <span className="text-red-600 font-bold text-xl">GP</span>
+                <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h3 className="font-bold text-lg">{schoolConfig.schoolName}</h3>
@@ -1309,9 +1322,33 @@ const FloatingButtons = () => {
 // MAIN APP COMPONENT
 // ============================================
 function App() {
+  const [activeView, setActiveView] = useState<'website' | 'erp'>('website');
+
+  useEffect(() => {
+    if (window.location.hash === '#login' || window.location.hash.startsWith('#erp')) {
+      setActiveView('erp');
+    }
+  }, []);
+
+  const openLogin = () => {
+    window.location.hash = 'login';
+    setActiveView('erp');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openWebsite = () => {
+    window.location.hash = 'home';
+    setActiveView('website');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (activeView === 'erp') {
+    return <ErpApp onBackHome={openWebsite} />;
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <Header onOpenLogin={openLogin} />
       <main>
         <HeroSection />
         <AboutSection />
