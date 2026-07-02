@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { schoolConfig } from './config/schoolData';
 import ErpApp from './erp/ErpApp';
 
@@ -35,7 +35,7 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   }, []);
 
   const nav = [
-    ['Home', '#home'], ['ERP Modules', '#erp-modules'], ['Admission', '#admission'], ['Facilities', '#facilities'], ['Gallery', '#gallery'], ['Contact', '#contact']
+    ['Home', '#home'], ['ERP Modules', '#erp-modules'], ['Admission', '#admission'], ['Pricing', '#pricing'], ['Facilities', '#facilities'], ['Contact', '#contact']
   ];
 
   return (
@@ -48,7 +48,7 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
             </span>
             <span>
               <span className={`block text-xl font-black ${scrolled ? 'text-gray-950' : 'text-white'}`}>{schoolConfig.schoolName}</span>
-              <span className={`block text-xs font-semibold ${scrolled ? 'text-gray-500' : 'text-red-100'}`}>Smart School ERP + Website</span>
+              <span className={`block text-xs font-semibold ${scrolled ? 'text-gray-500' : 'text-red-100'}`}>Premium School Website + ERP</span>
             </span>
           </a>
 
@@ -75,7 +75,7 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
 
 const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   const stats = [
-    ['500+', 'Active Students'], ['30+', 'Teachers & Staff'], ['15+', 'Years Trust'], ['100%', 'Digital ERP Demo']
+    ['500+', 'Students'], ['30+', 'Staff'], ['12+', 'ERP Modules'], ['100%', 'Demo Ready']
   ];
   return (
     <section id="home" className="relative overflow-hidden bg-gray-950 pt-24 text-white">
@@ -84,12 +84,12 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
       <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Admission Open 2026-27 • Smart ERP Enabled School</div>
+            <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Client Demo Ready • Admission Open 2026-27</div>
             <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl">
-              Premium School Website + <span className="text-yellow-300">ERP System</span>
+              School Website + <span className="text-yellow-300">Smart ERP</span> Demo
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-red-50 md:text-xl">
-              Gurukul Pathshala ke liye professional landing page, admission inquiry, notice board, gallery, contact aur Admin/Teacher/Student ERP dashboard ek hi platform par.
+              Gurukul Pathshala ke liye premium school website, admission inquiry, WhatsApp lead, notice board, gallery aur Admin/Teacher/Student ERP demo — sab ek hi professional platform par.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Button href="#admission" variant="light">Admission Inquiry</Button>
@@ -261,6 +261,94 @@ const FAQSection = () => {
   );
 };
 
+
+const NoticeEventsSection = () => (
+  <section className="bg-white py-20">
+    <div className="mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-2">
+      <div className="rounded-[2rem] border border-gray-100 bg-gray-50 p-7">
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-600">Notice Board</p>
+        <h2 className="mt-3 text-3xl font-black text-gray-950">Latest school updates</h2>
+        <div className="mt-6 space-y-4">
+          {schoolConfig.notices.slice(0, 4).map((notice) => (
+            <div key={notice.id} className="rounded-3xl bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-black text-gray-950">{notice.title}</h3>
+                <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-black text-red-600">{notice.category}</span>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-gray-600">{notice.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-[2rem] border border-gray-100 bg-gray-950 p-7 text-white">
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Events</p>
+        <h2 className="mt-3 text-3xl font-black">Upcoming activities</h2>
+        <div className="mt-6 space-y-4">
+          {schoolConfig.upcomingEvents.slice(0, 4).map((event) => (
+            <div key={event.name} className="flex gap-4 rounded-3xl bg-white/10 p-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-2xl">📅</div>
+              <div>
+                <h3 className="font-black">{event.name}</h3>
+                <p className="mt-1 text-sm text-gray-300">{event.date} • {event.time} • {event.venue}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const PricingSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
+  const plans = [
+    ['Website Demo', 'For school presentation', ['Premium landing page', 'Admission inquiry', 'Gallery + FAQ', 'WhatsApp CTA']],
+    ['ERP Demo', 'For management preview', ['Admin dashboard', 'Teacher portal', 'Student portal', 'Fees + reports']],
+    ['Full Setup', 'For real school launch', ['Backend connection', 'Database setup', 'Online payments', 'Training + support']],
+  ];
+  return (
+    <section id="pricing" className="bg-gray-50 py-20">
+      <div className="mx-auto max-w-7xl px-4">
+        <SectionTitle eyebrow="Plans" title="Demo aur full setup ke liye clear packages" subtitle="Client ko price final karne se pehle website/ERP ka professional demo dikhaya ja sakta hai." />
+        <div className="grid gap-6 lg:grid-cols-3">
+          {plans.map(([name, desc, features], index) => (
+            <div key={name as string} className={`rounded-[2rem] border p-7 shadow-sm ${index === 1 ? 'border-red-200 bg-white shadow-xl ring-4 ring-red-50' : 'border-gray-100 bg-white'}`}>
+              {index === 1 && <span className="mb-4 inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black text-white">Most Useful Demo</span>}
+              <h3 className="text-2xl font-black text-gray-950">{name}</h3>
+              <p className="mt-2 text-gray-600">{desc}</p>
+              <ul className="mt-6 space-y-3">
+                {(features as string[]).map((f) => <li key={f} className="flex gap-3 font-semibold text-gray-700"><span className="text-green-600">✓</span>{f}</li>)}
+              </ul>
+              <button onClick={index === 1 ? onOpenLogin : undefined} className="mt-7 w-full rounded-2xl bg-gray-950 px-5 py-4 font-black text-white hover:bg-red-600">
+                {index === 1 ? 'View ERP Demo' : 'Request Callback'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const FinalCTA = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
+  <section className="bg-white py-20">
+    <div className="mx-auto max-w-7xl px-4">
+      <div className="rounded-[2rem] bg-gradient-to-r from-red-600 via-red-700 to-gray-950 p-8 text-white shadow-2xl md:p-12">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-100">Ready for demo</p>
+            <h2 className="mt-3 text-3xl font-black md:text-5xl">School owner ko dikhane ke liye premium first impression ready</h2>
+            <p className="mt-5 max-w-2xl leading-8 text-red-50">Landing page se admission inquiry milegi aur ERP demo se school management ko real software feel aayega.</p>
+          </div>
+          <div className="flex flex-col gap-4 sm:flex-row lg:justify-end">
+            <Button onClick={onOpenLogin} variant="light">Open ERP Demo</Button>
+            <Button href="#contact" variant="outline">Contact Now</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
 const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
   <section id="contact" className="bg-gray-950 py-20 text-white">
     <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2">
@@ -297,7 +385,7 @@ function App() {
   const openLogin = () => { window.location.hash = 'login'; setActiveView('erp'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const openWebsite = () => { window.location.hash = 'home'; setActiveView('website'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   if (activeView === 'erp') return <ErpApp onBackHome={openWebsite} />;
-  return <div className="min-h-screen bg-white"><Header onOpenLogin={openLogin} /><main><HeroSection onOpenLogin={openLogin} /><TrustBar /><ErpModulesSection /><AboutSection /><AdmissionSection /><FacilitiesSection /><GallerySection /><TestimonialsSection /><FAQSection /><ContactSection onOpenLogin={openLogin} /></main><Footer onOpenLogin={openLogin} /><FloatingButtons /></div>;
+  return <div className="min-h-screen bg-white"><Header onOpenLogin={openLogin} /><main><HeroSection onOpenLogin={openLogin} /><TrustBar /><ErpModulesSection /><AboutSection /><AdmissionSection /><NoticeEventsSection /><FacilitiesSection /><GallerySection /><TestimonialsSection /><PricingSection onOpenLogin={openLogin} /><FAQSection /><FinalCTA onOpenLogin={openLogin} /><ContactSection onOpenLogin={openLogin} /></main><Footer onOpenLogin={openLogin} /><FloatingButtons /></div>;
 }
 
 export default App;
