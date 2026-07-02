@@ -147,8 +147,8 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
         </div>
         <div className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 border border-slate-200 dark:border-slate-800">
           <span className="text-4xl">🚀</span>
-          <h3 className="font-black text-lg mt-4">Day 4 Ready</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Backend-ready service layer, login session persistence and production build checks are now added.</p>
+          <h3 className="font-black text-lg mt-4">ERP Control Center</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Admission, fees, marks, notices and daily operations are ready for client demo with connected data flow.</p>
           <div className="mt-5 h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full w-4/5 bg-gradient-to-r from-red-600 to-orange-400" /></div>
         </div>
       </section>
