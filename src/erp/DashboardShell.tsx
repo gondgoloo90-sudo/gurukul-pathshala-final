@@ -1,51 +1,53 @@
 import { useEffect, useMemo, useState } from 'react';
 import { schoolConfig } from '../config/schoolData';
-import type { UserRole } from './types';
+import type { ErpPage, UserRole } from './types';
 import { roleLabels, roleSubtitles } from './erpData';
 
 interface DashboardShellProps {
   role: UserRole;
   children: React.ReactNode;
+  activePage: ErpPage;
+  onNavigate: (page: ErpPage) => void;
   onLogout: () => void;
   onBackHome: () => void;
 }
 
-const menuByRole: Record<UserRole, { label: string; icon: string; children?: string[] }[]> = {
+const menuByRole: Record<UserRole, { label: string; icon: string; page: ErpPage; children?: { label: string; page: ErpPage }[] }[]> = {
   admin: [
-    { label: 'Dashboard', icon: '🏠' },
-    { label: 'Student Management', icon: '🎓', children: ['All Students', 'Admission', 'Promote Student'] },
-    { label: 'Teacher Management', icon: '👩‍🏫' },
-    { label: 'Attendance', icon: '✅' },
-    { label: 'Fee Management', icon: '💰' },
-    { label: 'Examination', icon: '📊' },
-    { label: 'Library', icon: '📚' },
-    { label: 'Transport', icon: '🚌' },
-    { label: 'Notice Board', icon: '📢' },
-    { label: 'Documents', icon: '📁' },
-    { label: 'Settings', icon: '⚙️' },
+    { label: 'Dashboard', icon: '🏠', page: 'dashboard' },
+    { label: 'Student Management', icon: '🎓', page: 'students', children: [{ label: 'All Students', page: 'students' }, { label: 'Admission', page: 'admission' }, { label: 'Promote Student', page: 'promote' }] },
+    { label: 'Teacher Management', icon: '👩‍🏫', page: 'teachers' },
+    { label: 'Attendance', icon: '✅', page: 'attendance' },
+    { label: 'Fee Management', icon: '💰', page: 'fees' },
+    { label: 'Examination', icon: '📊', page: 'examination' },
+    { label: 'Library', icon: '📚', page: 'library' },
+    { label: 'Transport', icon: '🚌', page: 'transport' },
+    { label: 'Notice Board', icon: '📢', page: 'notices' },
+    { label: 'Documents', icon: '📁', page: 'documents' },
+    { label: 'Settings', icon: '⚙️', page: 'settings' },
   ],
   teacher: [
-    { label: 'Dashboard', icon: '🏠' },
-    { label: 'My Classes', icon: '📚' },
-    { label: 'Attendance', icon: '✅' },
-    { label: 'Homework', icon: '📝' },
-    { label: 'Marks', icon: '🏆' },
-    { label: 'Messages', icon: '💬' },
-    { label: 'Calendar', icon: '🗓️' },
-    { label: 'Settings', icon: '⚙️' },
+    { label: 'Dashboard', icon: '🏠', page: 'dashboard' },
+    { label: 'My Classes', icon: '📚', page: 'classes' },
+    { label: 'Attendance', icon: '✅', page: 'attendance' },
+    { label: 'Homework', icon: '📝', page: 'homework' },
+    { label: 'Marks', icon: '🏆', page: 'marks' },
+    { label: 'Messages', icon: '💬', page: 'messages' },
+    { label: 'Calendar', icon: '🗓️', page: 'calendar' },
+    { label: 'Settings', icon: '⚙️', page: 'settings' },
   ],
   student: [
-    { label: 'Dashboard', icon: '🏠' },
-    { label: 'Homework', icon: '📘' },
-    { label: 'Attendance', icon: '✅' },
-    { label: 'Result', icon: '🏆' },
-    { label: 'Fees', icon: '💳' },
-    { label: 'Notices', icon: '📢' },
-    { label: 'Profile', icon: '👤' },
+    { label: 'Dashboard', icon: '🏠', page: 'dashboard' },
+    { label: 'Homework', icon: '📘', page: 'homework' },
+    { label: 'Attendance', icon: '✅', page: 'attendance' },
+    { label: 'Result', icon: '🏆', page: 'result' },
+    { label: 'Fees', icon: '💳', page: 'fees' },
+    { label: 'Notices', icon: '📢', page: 'notices' },
+    { label: 'Profile', icon: '👤', page: 'profile' },
   ],
 };
 
-const DashboardShell = ({ role, children, onLogout, onBackHome }: DashboardShellProps) => {
+const DashboardShell = ({ role, children, activePage, onNavigate, onLogout, onBackHome }: DashboardShellProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -77,24 +79,34 @@ const DashboardShell = ({ role, children, onLogout, onBackHome }: DashboardShell
           </div>
 
           <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-14rem)]">
-            {menu.map((item, index) => (
-              <div key={item.label}>
-                <button className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left font-bold transition-all ${index === 0 ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/25' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}>
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="flex-1">{item.label}</span>
-                  {item.children && <span className="text-xs opacity-70">▾</span>}
-                </button>
-                {index === 1 && item.children && role === 'admin' && (
-                  <div className="ml-9 mt-1 mb-2 space-y-1">
-                    {item.children.map((child) => (
-                      <button key={child} className="block w-full text-left px-3 py-2 text-sm rounded-xl text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800">
-                        {child}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {menu.map((item) => {
+              const isActive = activePage === item.page || item.children?.some((child) => child.page === activePage);
+              return (
+                <div key={item.label}>
+                  <button
+                    onClick={() => { onNavigate(item.page); setIsSidebarOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left font-bold transition-all ${isActive ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-600/25' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'}`}
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {item.children && <span className="text-xs opacity-70">▾</span>}
+                  </button>
+                  {item.children && role === 'admin' && (
+                    <div className="ml-9 mt-1 mb-2 space-y-1">
+                      {item.children.map((child) => (
+                        <button
+                          key={child.page}
+                          onClick={() => { onNavigate(child.page); setIsSidebarOpen(false); }}
+                          className={`block w-full text-left px-3 py-2 text-sm rounded-xl font-semibold ${activePage === child.page ? 'text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-300' : 'text-slate-500 dark:text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-800'}`}
+                        >
+                          {child.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </nav>
 
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95">
@@ -110,7 +122,7 @@ const DashboardShell = ({ role, children, onLogout, onBackHome }: DashboardShell
                 <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden rounded-2xl bg-slate-100 dark:bg-slate-800 p-3">☰</button>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">{formattedDate} • {formattedTime}</p>
-                  <h1 className="text-xl sm:text-3xl font-black truncate">{roleLabels[role]} Dashboard</h1>
+                  <h1 className="text-xl sm:text-3xl font-black truncate">{roleLabels[role]} {activePage === 'dashboard' ? 'Dashboard' : 'Portal'}</h1>
                 </div>
               </div>
 

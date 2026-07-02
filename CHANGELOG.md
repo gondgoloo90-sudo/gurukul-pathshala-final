@@ -27,3 +27,23 @@
 - Public website remains separate and safe.
 - ERP remains under login/dashboard flow.
 - Day 2 can now add Student Management, Teacher Management, Attendance, Fees and Results modules.
+## Day 2 Functional Navigation v1
+
+### Added
+- Sidebar menu buttons now open real ERP pages instead of staying on dashboard.
+- Student Management page with search, class filter, student table and New Admission action.
+- Admission form page with professional fields and document checklist.
+- Teacher Management page with teacher list and status badges.
+- Attendance page with present/absent controls and daily summary cards.
+- Fee Management page with fee summary, paid/pending statuses and receipt action.
+- Notice Board page with notice cards.
+- Placeholder module pages for Examination, Library, Transport, Documents, Settings, Homework, Result and Profile.
+
+### Modified
+- `src/erp/ErpApp.tsx` now manages `activePage` state.
+- `src/erp/DashboardShell.tsx` now supports navigation and active menu highlighting.
+- `src/erp/types.ts` now includes `ErpPage` routing type.
+
+### Tested
+- `npm run build` completed successfully.
+

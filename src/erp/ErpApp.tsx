@@ -2,7 +2,8 @@ import { useState } from 'react';
 import DashboardHome from './DashboardHome';
 import DashboardShell from './DashboardShell';
 import LoginPage from './LoginPage';
-import type { UserRole } from './types';
+import ErpPages from './ErpPages';
+import type { ErpPage, UserRole } from './types';
 
 interface ErpAppProps {
   initialMode?: 'login' | 'dashboard';
@@ -11,14 +12,21 @@ interface ErpAppProps {
 
 const ErpApp = ({ onBackHome }: ErpAppProps) => {
   const [role, setRole] = useState<UserRole | null>(null);
+  const [activePage, setActivePage] = useState<ErpPage>('dashboard');
 
   if (!role) {
-    return <LoginPage onLogin={setRole} onBackHome={onBackHome} />;
+    return <LoginPage onLogin={(nextRole) => { setRole(nextRole); setActivePage('dashboard'); }} onBackHome={onBackHome} />;
   }
 
   return (
-    <DashboardShell role={role} onLogout={() => setRole(null)} onBackHome={onBackHome}>
-      <DashboardHome role={role} />
+    <DashboardShell
+      role={role}
+      activePage={activePage}
+      onNavigate={setActivePage}
+      onLogout={() => { setRole(null); setActivePage('dashboard'); }}
+      onBackHome={onBackHome}
+    >
+      {activePage === 'dashboard' ? <DashboardHome role={role} /> : <ErpPages role={role} page={activePage} onNavigate={setActivePage} />}
     </DashboardShell>
   );
 };
