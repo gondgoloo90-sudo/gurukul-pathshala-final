@@ -1,178 +1,71 @@
-// ============================================
-// GURUKUL PATHSHALA - SCHOOL WEBSITE
-// ============================================
-// Main Application Component
-// All sections are modular and easy to edit
-// ============================================
-
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { schoolConfig } from './config/schoolData';
 import ErpApp from './erp/ErpApp';
 
-// ============================================
-// UTILITY COMPONENTS
-// ============================================
+type ButtonVariant = 'primary' | 'dark' | 'light' | 'outline';
 
-// Section Title Component - Reusable heading for all sections
-const SectionTitle = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-  <div className="text-center mb-12">
-    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 relative inline-block">
-      {title}
-      <span className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-red-600 rounded"></span>
-    </h2>
-    {subtitle && <p className="text-gray-600 mt-4 max-w-2xl mx-auto">{subtitle}</p>}
+const Button = ({ children, href, onClick, variant = 'primary', className = '' }: { children: React.ReactNode; href?: string; onClick?: () => void; variant?: ButtonVariant; className?: string }) => {
+  const styles: Record<ButtonVariant, string> = {
+    primary: 'bg-red-600 text-white hover:bg-red-700 shadow-xl shadow-red-600/20',
+    dark: 'bg-gray-950 text-white hover:bg-gray-800 shadow-xl shadow-gray-950/20',
+    light: 'bg-white text-red-700 hover:bg-red-50 shadow-xl shadow-white/20',
+    outline: 'border border-white/40 text-white hover:bg-white hover:text-red-700',
+  };
+  const cls = `inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${styles[variant]} ${className}`;
+  if (href) return <a href={href} onClick={onClick} className={cls}>{children}</a>;
+  return <button onClick={onClick} className={cls}>{children}</button>;
+};
+
+const SectionTitle = ({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) => (
+  <div className="mx-auto mb-12 max-w-3xl text-center">
+    {eyebrow && <p className="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-red-600">{eyebrow}</p>}
+    <h2 className="text-3xl font-black tracking-tight text-gray-950 md:text-5xl">{title}</h2>
+    {subtitle && <p className="mt-5 text-lg leading-8 text-gray-600">{subtitle}</p>}
   </div>
 );
 
-// Button Component - Reusable button style
-const Button = ({ 
-  children, 
-  onClick, 
-  variant = 'primary', 
-  className = '',
-  type = 'button'
-}: { 
-  children: React.ReactNode; 
-  onClick?: () => void; 
-  variant?: 'primary' | 'secondary' | 'outline';
-  className?: string;
-  type?: 'button' | 'submit';
-}) => {
-  const baseStyles = "px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105";
-  const variants = {
-    primary: "bg-red-600 text-white hover:bg-red-700 shadow-lg hover:shadow-xl",
-    secondary: "bg-gray-800 text-white hover:bg-gray-900 shadow-lg",
-    outline: "border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
-  };
-  
-  return (
-    <button 
-      type={type}
-      onClick={onClick} 
-      className={`${baseStyles} ${variants[variant]} ${className}`}
-    >
-      {children}
-    </button>
-  );
-};
-
-// ============================================
-// HEADER COMPONENT
-// ============================================
 const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 30);
+    onScroll();
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Admission', href: '#admission' },
-    { name: 'Classes', href: '#classes' },
-    { name: 'Facilities', href: '#facilities' },
-    { name: 'Gallery', href: '#gallery' },
-    { name: 'Contact', href: '#contact' },
+  const nav = [
+    ['Home', '#home'], ['ERP Modules', '#erp-modules'], ['Admission', '#admission'], ['Facilities', '#facilities'], ['Gallery', '#gallery'], ['Contact', '#contact']
   ];
 
   return (
-    <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-r from-red-600 to-red-700'
-    }`}>
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo Section */}
-          <div className="flex items-center space-x-3">
-            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg">
-              <img 
-                src="/logo.svg.png" 
-                alt={schoolConfig.logo.alt}
-                className="w-12 h-12 object-contain"
-                onError={(e) => {
-                  // Fallback if logo not found - shows school initials
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <span className="hidden text-red-600 font-bold text-xl">GP</span>
-            </div>
-            <div>
-              <h1 className={`font-bold text-xl ${isScrolled ? 'text-gray-800' : 'text-white'}`}>
-                {schoolConfig.schoolName}
-              </h1>
-              <p className={`text-xs ${isScrolled ? 'text-gray-600' : 'text-red-100'}`}>
-                {schoolConfig.tagline}
-              </p>
-            </div>
-          </div>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-all ${scrolled ? 'bg-white/95 shadow-lg backdrop-blur' : 'bg-transparent'}`}>
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="flex h-20 items-center justify-between">
+          <a href="#home" className="flex items-center gap-3">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1 shadow-lg ring-1 ring-red-100">
+              <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="h-full w-full object-contain" onError={(e) => ((e.currentTarget.src = '/logo.svg'))} />
+            </span>
+            <span>
+              <span className={`block text-xl font-black ${scrolled ? 'text-gray-950' : 'text-white'}`}>{schoolConfig.schoolName}</span>
+              <span className={`block text-xs font-semibold ${scrolled ? 'text-gray-500' : 'text-red-100'}`}>Smart School ERP + Website</span>
+            </span>
+          </a>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className={`font-medium transition-colors hover:text-red-300 ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`}
-              >
-                {link.name}
-              </a>
-            ))}
-            <button
-              onClick={onOpenLogin}
-              className={`px-5 py-3 rounded-lg font-bold transition-all ${isScrolled ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-red-600 hover:bg-red-50'}`}
-            >
-              ERP Login
-            </button>
-            <Button variant={isScrolled ? 'primary' : 'secondary'}>
-              <a href="#admission" className="block">Admission Open</a>
-            </Button>
+          <nav className="hidden items-center gap-7 lg:flex">
+            {nav.map(([name, href]) => <a key={name} href={href} className={`text-sm font-bold transition-colors ${scrolled ? 'text-gray-700 hover:text-red-600' : 'text-white/90 hover:text-white'}`}>{name}</a>)}
+            <button onClick={onOpenLogin} className={`rounded-2xl px-5 py-3 text-sm font-black transition-all ${scrolled ? 'bg-gray-950 text-white hover:bg-gray-800' : 'bg-white text-red-700 hover:bg-red-50'}`}>ERP Login</button>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <svg className={`w-6 h-6 ${isScrolled ? 'text-gray-800' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+          <button onClick={() => setMenuOpen(!menuOpen)} className={`lg:hidden rounded-xl p-3 ${scrolled ? 'text-gray-950' : 'text-white'}`} aria-label="Toggle menu">
+            <span className="text-2xl">{menuOpen ? '✕' : '☰'}</span>
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t py-4">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                className="block px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.name}
-              </a>
-            ))}
-            <div className="px-4 py-3 space-y-3">
-              <button
-                onClick={() => { setIsMobileMenuOpen(false); onOpenLogin(); }}
-                className="w-full px-6 py-3 rounded-lg font-bold bg-gray-900 text-white hover:bg-gray-800 transition-colors"
-              >
-                ERP Login
-              </button>
-              <Button className="w-full">
-                <a href="#admission" className="block">Admission Open</a>
-              </Button>
-            </div>
+        {menuOpen && (
+          <div className="mb-4 rounded-3xl border bg-white p-4 shadow-2xl lg:hidden">
+            {nav.map(([name, href]) => <a key={name} href={href} onClick={() => setMenuOpen(false)} className="block rounded-2xl px-4 py-3 font-bold text-gray-700 hover:bg-red-50 hover:text-red-600">{name}</a>)}
+            <button onClick={() => { setMenuOpen(false); onOpenLogin(); }} className="mt-3 w-full rounded-2xl bg-gray-950 px-4 py-3 font-black text-white">ERP Login</button>
           </div>
         )}
       </div>
@@ -180,157 +73,49 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   );
 };
 
-// ============================================
-// HERO SECTION
-// ============================================
-const HeroSection = () => {
+const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
+  const stats = [
+    ['500+', 'Active Students'], ['30+', 'Teachers & Staff'], ['15+', 'Years Trust'], ['100%', 'Digital ERP Demo']
+  ];
   return (
-    <section id="home" className="relative min-h-screen flex items-center pt-20 bg-gradient-to-br from-red-600 via-red-700 to-red-800">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
-      </div>
-
-      <div className="container mx-auto px-4 py-20 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="text-center lg:text-left text-white">
-            <div className="inline-block bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
-              <span className="text-yellow-300 font-semibold">🎓 {schoolConfig.admission.heading}</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Welcome to<br />
-              <span className="text-yellow-300">{schoolConfig.schoolName}</span>
+    <section id="home" className="relative overflow-hidden bg-gray-950 pt-24 text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.55),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.35),transparent_30%)]" />
+      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '42px 42px' }} />
+      <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Admission Open 2026-27 • Smart ERP Enabled School</div>
+            <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl">
+              Premium School Website + <span className="text-yellow-300">ERP System</span>
             </h1>
-            
-            <p className="text-xl md:text-2xl mb-8 text-red-100">
-              {schoolConfig.tagline}
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-red-50 md:text-xl">
+              Gurukul Pathshala ke liye professional landing page, admission inquiry, notice board, gallery, contact aur Admin/Teacher/Student ERP dashboard ek hi platform par.
             </p>
-            
-            <p className="text-lg mb-8 text-red-50 max-w-xl">
-              {schoolConfig.shortDescription}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="secondary" className="bg-white text-red-600 hover:bg-gray-100">
-                <a href="#admission" className="block">Apply Now</a>
-              </Button>
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-red-600">
-                <a href="#about" className="block">Learn More</a>
-              </Button>
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <Button href="#admission" variant="light">Admission Inquiry</Button>
+              <Button onClick={onOpenLogin} variant="outline">View ERP Demo →</Button>
             </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/20">
-              <div>
-                <div className="text-3xl font-bold text-yellow-300">15+</div>
-                <div className="text-sm text-red-100">Years Excellence</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-yellow-300">500+</div>
-                <div className="text-sm text-red-100">Students</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-yellow-300">100%</div>
-                <div className="text-sm text-red-100">Pass Result</div>
-              </div>
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {stats.map(([value, label]) => <div key={label} className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur"><div className="text-3xl font-black text-yellow-300">{value}</div><div className="mt-1 text-xs font-semibold text-red-100">{label}</div></div>)}
             </div>
           </div>
-
-          {/* Right Content - Image/Illustration */}
-          <div className="hidden lg:block">
-            <div className="relative">
-              <div className="absolute -inset-4 bg-yellow-300/20 rounded-3xl transform rotate-3"></div>
-              <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-                <img 
-                  src="/hero-school.jpg" 
-                  alt="School Building"
-                  className="w-full h-96 object-cover rounded-2xl"
-                  onError={(e) => {
-                    // Fallback gradient if image not found
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    (e.target as HTMLImageElement).parentElement!.style.background = 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-                    (e.target as HTMLImageElement).parentElement!.style.minHeight = '384px';
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-        </svg>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// ABOUT SECTION
-// ============================================
-const AboutSection = () => {
-  return (
-    <section id="about" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="About Gurukul Pathshala" 
-          subtitle="Building strong foundations for future leaders"
-        />
-
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Image Side */}
           <div className="relative">
-            <div className="absolute -inset-4 bg-red-100 rounded-3xl transform -rotate-3"></div>
-            <img 
-              src="/about-school.jpg" 
-              alt="About School"
-              className="relative w-full h-96 object-cover rounded-2xl shadow-xl"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                (e.target as HTMLImageElement).parentElement!.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-                (e.target as HTMLImageElement).parentElement!.style.minHeight = '384px';
-                (e.target as HTMLImageElement).parentElement!.classList.add('rounded-2xl');
-              }}
-            />
-          </div>
-
-          {/* Content Side */}
-          <div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-              Empowering Young Minds Since 2010
-            </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              {schoolConfig.shortDescription}
-            </p>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              Our institution combines the best of traditional Indian values with modern educational 
-              methodologies to create well-rounded individuals ready to face the challenges of tomorrow.
-            </p>
-
-            {/* Why Choose Us Cards */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              {schoolConfig.whyChooseUs.slice(0, 4).map((item, index) => (
-                <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl hover:bg-red-50 transition-colors">
-                  <span className="text-2xl">{item.icon}</span>
-                  <div>
-                    <h4 className="font-semibold text-gray-800">{item.title}</h4>
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  </div>
+            <div className="absolute -inset-5 rounded-[2rem] bg-red-500/30 blur-3xl" />
+            <div className="relative rounded-[2rem] border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur">
+              <div className="rounded-[1.5rem] bg-white p-4 text-gray-950">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div><p className="text-sm font-bold text-red-600">Live Dashboard Preview</p><h3 className="text-2xl font-black">School Control Panel</h3></div>
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Online</span>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-8">
-              <Button>
-                <a href="#contact" className="block">Schedule a Visit</a>
-              </Button>
+                <div className="grid gap-3 py-4 sm:grid-cols-2">
+                  {['Admissions', 'Attendance', 'Fees', 'Report Cards'].map((item, i) => <div key={item} className="rounded-2xl bg-gray-50 p-4"><div className="text-2xl">{['📝','✅','💳','📊'][i]}</div><p className="mt-2 font-black">{item}</p><p className="text-sm text-gray-500">Ready module</p></div>)}
+                </div>
+                <div className="rounded-2xl bg-gradient-to-r from-red-600 to-red-700 p-5 text-white">
+                  <p className="text-sm font-bold text-red-100">Demo Login</p>
+                  <p className="mt-1 text-xl font-black">Admin • Teacher • Student</p>
+                  <p className="mt-2 text-sm text-red-100">Client ko demo dikhane ke liye ready.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -339,1035 +124,180 @@ const AboutSection = () => {
   );
 };
 
-// ============================================
-// PRINCIPAL MESSAGE SECTION
-// ============================================
-const PrincipalMessage = () => {
+const TrustBar = () => (
+  <section className="border-b border-gray-100 bg-white py-6">
+    <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 text-center md:grid-cols-4">
+      {['Smart Classes', 'Digital Attendance', 'Online Fees', 'Parent Communication'].map((item) => <div key={item} className="rounded-2xl bg-gray-50 px-4 py-3 text-sm font-black text-gray-700">✓ {item}</div>)}
+    </div>
+  </section>
+);
+
+const ErpModulesSection = () => {
+  const modules = [
+    ['👨‍💼', 'Admin Dashboard', 'Admissions, fees, attendance, notices, analytics and school settings.'],
+    ['👨‍🏫', 'Teacher Portal', 'Homework, attendance, marks, timetable and class communication.'],
+    ['🎒', 'Student Portal', 'Profile, attendance, homework, marks, fee status and calendar.'],
+    ['🧾', 'Fees Management', 'Pending fees, receipts, payment history and export-ready records.'],
+    ['📊', 'Reports & Analytics', 'Student strength, attendance trend, revenue cards and quick actions.'],
+    ['📢', 'Notice Board', 'School announcements, events, holidays and parent updates.'],
+  ];
   return (
-    <section className="py-20 bg-gradient-to-br from-amber-50 to-orange-50">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Principal's Message" 
-          subtitle="A word from our leadership"
-        />
-
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-            <div className="grid md:grid-cols-3 gap-8 p-8">
-              {/* Principal Image */}
-              <div className="md:col-span-1">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-red-100 rounded-2xl transform rotate-2"></div>
-                  <img 
-                    src={schoolConfig.principal.image}
-                    alt={schoolConfig.principal.name}
-                    className="relative w-full h-64 object-cover rounded-2xl shadow-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                      (e.target as HTMLImageElement).parentElement!.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-                      (e.target as HTMLImageElement).parentElement!.style.minHeight = '256px';
-                      (e.target as HTMLImageElement).parentElement!.classList.add('rounded-2xl', 'flex', 'items-center', 'justify-center');
-                      (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-6xl">👨‍🏫</span>';
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Message Content */}
-              <div className="md:col-span-2">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  {schoolConfig.principal.name}
-                </h3>
-                <p className="text-red-600 font-semibold mb-4">Principal</p>
-                
-                <div className="prose prose-red max-w-none">
-                  {schoolConfig.principal.message.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="text-gray-600 mb-4 leading-relaxed">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-
-                {/* Signature Placeholder */}
-                <div className="mt-6">
-                  <img 
-                    src={schoolConfig.principal.signature}
-                    alt="Signature"
-                    className="h-16"
-                    onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+    <section id="erp-modules" className="bg-gray-50 py-20">
+      <div className="mx-auto max-w-7xl px-4">
+        <SectionTitle eyebrow="ERP Modules" title="School management ko simple aur professional banaye" subtitle="Client ko demo dene ke liye website ke saath ERP preview ready hai." />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {modules.map(([icon, title, desc]) => <div key={title} className="rounded-[1.5rem] border border-gray-100 bg-white p-7 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"><div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-3xl">{icon}</div><h3 className="text-xl font-black text-gray-950">{title}</h3><p className="mt-3 leading-7 text-gray-600">{desc}</p></div>)}
         </div>
       </div>
     </section>
   );
 };
 
-// ============================================
-// ADMISSION SECTION
-// ============================================
+const AboutSection = () => (
+  <section id="about" className="bg-white py-20">
+    <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 lg:grid-cols-2">
+      <div>
+        <SectionTitle eyebrow="About" title="Education + Technology ka perfect combination" subtitle={schoolConfig.shortDescription} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {schoolConfig.whyChooseUs.map((item) => <div key={item.title} className="rounded-3xl bg-gray-50 p-5"><div className="text-3xl">{item.icon}</div><h3 className="mt-3 font-black text-gray-950">{item.title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{item.description}</p></div>)}
+        </div>
+      </div>
+      <div className="rounded-[2rem] bg-gradient-to-br from-red-600 to-red-800 p-8 text-white shadow-2xl">
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-100">Principal Message</p>
+        <h3 className="mt-3 text-3xl font-black">{schoolConfig.principal.name}</h3>
+        <p className="mt-5 leading-8 text-red-50">Hamari priority hai ki har student ko safe campus, quality teaching aur digital learning experience mile. Gurukul Pathshala traditional values aur modern education dono ko saath lekar chalti hai.</p>
+        <div className="mt-8 grid grid-cols-3 gap-3 text-center">
+          {['Safe Campus', 'Smart ERP', 'Modern Learning'].map((x) => <div key={x} className="rounded-2xl bg-white/10 p-4 text-sm font-bold">{x}</div>)}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
 const AdmissionSection = () => {
-  const [formData, setFormData] = useState({
-    parentName: '',
-    studentName: '',
-    studentAge: '',
-    classApplied: '',
-    phone: '',
-    email: '',
-    address: '',
-    message: ''
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({ parentName: '', studentName: '', classApplied: '', phone: '', message: '' });
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Thank you for your inquiry! We will contact you soon.');
-    setFormData({
-      parentName: '',
-      studentName: '',
-      studentAge: '',
-      classApplied: '',
-      phone: '',
-      email: '',
-      address: '',
-      message: ''
-    });
+    const text = `Admission Inquiry%0AParent: ${formData.parentName}%0AStudent: ${formData.studentName}%0AClass: ${formData.classApplied}%0APhone: ${formData.phone}%0AMessage: ${formData.message}`;
+    window.open(`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '').replace(/\s/g, '')}?text=${text}`, '_blank');
   };
-
   return (
-    <section id="admission" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title={schoolConfig.admission.heading} 
-          subtitle={schoolConfig.admission.description}
-        />
-
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Left - Admission Info */}
-          <div>
-            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-3xl p-8 mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">Admission Process</h3>
-              <ol className="space-y-4">
-                {schoolConfig.admission.process.map((step, index) => (
-                  <li key={index} className="flex items-start space-x-4">
-                    <span className="flex-shrink-0 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-bold">
-                      {index + 1}
-                    </span>
-                    <span className="text-gray-700 pt-1">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="bg-gray-50 rounded-3xl p-8 mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">Documents Required</h3>
-              <ul className="space-y-3">
-                {schoolConfig.admission.documentsRequired.map((doc, index) => (
-                  <li key={index} className="flex items-center space-x-3">
-                    <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-gray-700">{doc}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="bg-red-600 text-white rounded-3xl p-8">
-              <h3 className="text-2xl font-bold mb-6">Fee Structure</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-red-400 pb-3">
-                  <span>Admission Fee</span>
-                  <span className="font-bold text-xl">{schoolConfig.admission.fees.admissionFee}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-red-400 pb-3">
-                  <span>Annual Fee</span>
-                  <span className="font-bold text-xl">{schoolConfig.admission.fees.annualFee}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-red-400 pb-3">
-                  <span>Monthly Fee</span>
-                  <span className="font-bold text-xl">{schoolConfig.admission.fees.monthlyFee}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Transport Fee (Optional)</span>
-                  <span className="font-bold text-xl">{schoolConfig.admission.fees.transportFee}</span>
-                </div>
-              </div>
-            </div>
+    <section id="admission" className="bg-gradient-to-br from-red-50 to-amber-50 py-20">
+      <div className="mx-auto max-w-7xl px-4">
+        <SectionTitle eyebrow="Admission" title={schoolConfig.admission.heading} subtitle={schoolConfig.admission.description} />
+        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="space-y-5">
+            <div className="rounded-[2rem] bg-white p-7 shadow-sm"><h3 className="text-2xl font-black">Admission Process</h3><ol className="mt-5 space-y-4">{schoolConfig.admission.process.map((step, i) => <li key={step} className="flex gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-black text-white">{i + 1}</span><span className="pt-1 font-semibold text-gray-700">{step}</span></li>)}</ol></div>
+            <div className="rounded-[2rem] bg-gray-950 p-7 text-white"><h3 className="text-2xl font-black">Fee Snapshot</h3><div className="mt-5 space-y-3 text-sm">{Object.entries(schoolConfig.admission.fees).map(([k, v]) => <div key={k} className="flex justify-between border-b border-white/10 pb-3"><span className="capitalize text-gray-300">{k.replace(/([A-Z])/g, ' $1')}</span><b>{v}</b></div>)}</div></div>
           </div>
-
-          {/* Right - Inquiry Form */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Admission Inquiry Form</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Parent/Guardian Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.parentName}
-                    onChange={(e) => setFormData({...formData, parentName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter parent name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Student Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.studentName}
-                    onChange={(e) => setFormData({...formData, studentName: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Enter student name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Student Age</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.studentAge}
-                    onChange={(e) => setFormData({...formData, studentAge: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Age in years"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Class Applied For</label>
-                  <select
-                    required
-                    value={formData.classApplied}
-                    onChange={(e) => setFormData({...formData, classApplied: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  >
-                    <option value="">Select Class</option>
-                    {schoolConfig.classes.map((cls) => (
-                      <option key={cls.name} value={cls.name}>{cls.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="+91 XXXXX XXXXX"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="email@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                <textarea
-                  required
-                  value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  rows={2}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter your address"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Any Message</label>
-                <textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Any additional information..."
-                />
-              </div>
-
-              <Button type="submit" className="w-full">
-                Submit Inquiry
-              </Button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// CLASSES SECTION
-// ============================================
-const ClassesSection = () => {
-  return (
-    <section id="classes" className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Classes Offered" 
-          subtitle="Quality education from Nursery to Class 8"
-        />
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {schoolConfig.classes.map((cls, index) => (
-            <div 
-              key={index}
-              className="bg-white rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-b-4 border-red-600"
-            >
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-red-600">{cls.name.replace('Class ', '')}</span>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">{cls.name}</h3>
-              <p className="text-sm text-gray-600">Age: {cls.age}</p>
-              <p className="text-xs text-gray-500 mt-1">{cls.strength}</p>
+          <form onSubmit={submit} className="rounded-[2rem] bg-white p-7 shadow-xl">
+            <h3 className="text-2xl font-black text-gray-950">Quick Admission Inquiry</h3><p className="mt-2 text-gray-600">Form submit karte hi WhatsApp inquiry ready ho jayegi.</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <input required placeholder="Parent/Guardian Name" value={formData.parentName} onChange={(e) => setFormData({ ...formData, parentName: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+              <input required placeholder="Student Name" value={formData.studentName} onChange={(e) => setFormData({ ...formData, studentName: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+              <select required value={formData.classApplied} onChange={(e) => setFormData({ ...formData, classApplied: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"><option value="">Select Class</option>{schoolConfig.classes.map((cls) => <option key={cls.name}>{cls.name}</option>)}</select>
+              <input required placeholder="Phone Number" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
             </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            {schoolConfig.admission.eligibility}
-          </p>
-          <Button>
-            <a href="#admission" className="block">Apply for Admission</a>
-          </Button>
+            <textarea placeholder="Message / Address" rows={5} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} className="mt-4 w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+            <button className="mt-4 w-full rounded-2xl bg-red-600 px-6 py-4 font-black text-white hover:bg-red-700">Send Inquiry on WhatsApp</button>
+          </form>
         </div>
       </div>
     </section>
   );
 };
 
-// ============================================
-// FACILITIES SECTION
-// ============================================
-const FacilitiesSection = () => {
+const FacilitiesSection = () => (
+  <section id="facilities" className="bg-white py-20">
+    <div className="mx-auto max-w-7xl px-4">
+      <SectionTitle eyebrow="Facilities" title="Parent trust badhane wale school features" subtitle="Website par clear facilities dikhne se school ka professional impression strong hota hai." />
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {schoolConfig.facilities.slice(0, 9).map((f) => <div key={f.title} className="group rounded-[1.5rem] bg-gray-50 p-6 transition-all hover:bg-red-600 hover:text-white"><div className="text-4xl">{f.icon}</div><h3 className="mt-4 text-xl font-black">{f.title}</h3><p className="mt-3 leading-7 text-gray-600 group-hover:text-red-50">{f.description}</p></div>)}
+      </div>
+    </div>
+  </section>
+);
+
+const GallerySection = () => (
+  <section id="gallery" className="bg-gray-50 py-20">
+    <div className="mx-auto max-w-7xl px-4">
+      <SectionTitle eyebrow="Gallery" title="School life ka professional preview" subtitle="Infrastructure, events, sports aur classroom activities ek modern gallery me." />
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {schoolConfig.gallery.slice(0, 8).map((img) => <div key={img.src} className="group relative aspect-square overflow-hidden rounded-[1.5rem] bg-red-100 shadow-sm"><img src={img.src} alt={img.alt} className="h-full w-full object-cover transition-transform group-hover:scale-110" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-sm font-bold text-white">{img.alt}</div></div>)}
+      </div>
+    </div>
+  </section>
+);
+
+const TestimonialsSection = () => {
+  const testimonials = [
+    ['Parent', 'School ka digital system aur communication bahut helpful hai. Attendance aur notices easily mil jate hain.'],
+    ['Teacher', 'ERP dashboard se attendance, homework aur marks manage karna simple ho gaya hai.'],
+    ['Admin', 'Admissions, fees aur reports ko ek jagah manage karne ka clean solution hai.'],
+  ];
   return (
-    <section id="facilities" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Our Facilities" 
-          subtitle="State-of-the-art infrastructure for holistic development"
-        />
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {schoolConfig.facilities.map((facility, index) => (
-            <div 
-              key={index}
-              className="group bg-gradient-to-br from-gray-50 to-red-50 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-            >
-              <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <span className="text-3xl">{facility.icon}</span>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">{facility.title}</h3>
-              <p className="text-gray-600">{facility.description}</p>
-            </div>
-          ))}
+    <section className="bg-white py-20">
+      <div className="mx-auto max-w-7xl px-4">
+        <SectionTitle eyebrow="Testimonials" title="Parents aur school team ke liye built" />
+        <div className="grid gap-6 md:grid-cols-3">
+          {testimonials.map(([role, text]) => <div key={role} className="rounded-[1.5rem] border bg-white p-7 shadow-sm"><div className="text-3xl text-yellow-400">★★★★★</div><p className="mt-4 leading-8 text-gray-700">“{text}”</p><p className="mt-5 font-black text-red-600">{role}</p></div>)}
         </div>
       </div>
     </section>
   );
 };
 
-// ============================================
-// NOTICE BOARD SECTION
-// ============================================
-const NoticeBoardSection = () => {
-  const getPriorityColor = (priority: string) => {
-    switch(priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-300';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      default: return 'bg-blue-100 text-blue-800 border-blue-300';
-    }
-  };
-
-  return (
-    <section className="py-20 bg-gradient-to-br from-red-600 to-red-700">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            📢 Notice Board
-          </h2>
-          <p className="text-red-100">Stay updated with latest announcements</p>
-        </div>
-
-        <div className="max-w-4xl mx-auto">
-          <div className="space-y-4">
-            {schoolConfig.notices.map((notice) => (
-              <div 
-                key={notice.id}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getPriorityColor(notice.priority)}`}>
-                        {notice.category}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        📅 {new Date(notice.date).toLocaleDateString('en-IN', { 
-                          day: 'numeric', 
-                          month: 'long', 
-                          year: 'numeric' 
-                        })}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">{notice.title}</h3>
-                    <p className="text-gray-600">{notice.description}</p>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <span className="text-4xl">📌</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// TEACHERS SECTION
-// ============================================
-const TeachersSection = () => {
-  return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Our Teachers" 
-          subtitle="Dedicated educators shaping future leaders"
-        />
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {schoolConfig.teachers.map((teacher, index) => (
-            <div 
-              key={index}
-              className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-            >
-              <div className="h-48 bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center">
-                <img 
-                  src={teacher.image}
-                  alt={teacher.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-6xl">👨‍🏫</span>';
-                  }}
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-1">{teacher.name}</h3>
-                <p className="text-red-600 font-semibold mb-3">{teacher.designation}</p>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p>📚 {teacher.qualification}</p>
-                  <p>⏱️ {teacher.experience} experience</p>
-                </div>
-                <p className="mt-4 text-gray-500 text-sm italic">"{teacher.description}"</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// GALLERY SECTION
-// ============================================
-const GallerySection = () => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  return (
-    <section id="gallery" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Photo Gallery" 
-          subtitle="Glimpses of life at Gurukul Pathshala"
-        />
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {schoolConfig.gallery.map((image, index) => (
-            <div 
-              key={index}
-              className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-square"
-              onClick={() => setSelectedImage(image.src)}
-            >
-              <img 
-                src={image.src}
-                alt={image.alt}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  (e.target as HTMLImageElement).parentElement!.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-                  (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="absolute inset-0 flex items-center justify-center text-4xl">📷</span>`;
-                }}
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="text-white text-lg font-semibold">{image.category}</span>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                <p className="text-white text-sm">{image.alt}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Lightbox Modal */}
-        {selectedImage && (
-          <div 
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedImage(null)}
-          >
-            <button 
-              className="absolute top-4 right-4 text-white text-4xl hover:text-red-500"
-              onClick={() => setSelectedImage(null)}
-            >
-              ×
-            </button>
-            <img 
-              src={selectedImage}
-              alt="Gallery"
-              className="max-w-full max-h-full object-contain"
-              onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
-            />
-          </div>
-        )}
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// EVENTS SECTION
-// ============================================
-const EventsSection = () => {
-  return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Upcoming Events" 
-          subtitle="Mark your calendar for these exciting activities"
-        />
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {schoolConfig.upcomingEvents.map((event, index) => (
-            <div 
-              key={index}
-              className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-red-600"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-3xl">📅</span>
-                <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
-                  {new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                </span>
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">{event.name}</h3>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>⏰ {event.time}</p>
-                <p>📍 {event.venue}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// ACHIEVEMENTS SECTION
-// ============================================
-const AchievementsSection = () => {
-  return (
-    <section className="py-20 bg-gradient-to-br from-red-600 to-red-700">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            🏆 Our Achievements
-          </h2>
-          <p className="text-red-100">Celebrating excellence and success</p>
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {schoolConfig.achievements.map((achievement, index) => (
-            <div 
-              key={index}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center hover:bg-white/20 transition-colors"
-            >
-              <div className="text-5xl mb-4">{achievement.icon}</div>
-              <h3 className="text-xl font-bold text-white mb-2">{achievement.title}</h3>
-              <p className="text-red-100 mb-3">{achievement.description}</p>
-              <span className="inline-block bg-white/20 px-4 py-1 rounded-full text-sm text-white">
-                {achievement.year}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// FAQ SECTION
-// ============================================
 const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
+  const [open, setOpen] = useState(0);
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Frequently Asked Questions" 
-          subtitle="Get answers to common queries"
-        />
-
-        <div className="max-w-3xl mx-auto">
-          <div className="space-y-4">
-            {schoolConfig.faq.map((item, index) => (
-              <div 
-                key={index}
-                className="border border-gray-200 rounded-2xl overflow-hidden"
-              >
-                <button
-                  className="w-full px-6 py-4 text-left bg-gray-50 hover:bg-red-50 transition-colors flex items-center justify-between"
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                >
-                  <span className="font-semibold text-gray-800">{item.question}</span>
-                  <span className={`transform transition-transform ${openIndex === index ? 'rotate-45' : ''}`}>
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </span>
-                </button>
-                {openIndex === index && (
-                  <div className="px-6 py-4 bg-white">
-                    <p className="text-gray-600">{item.answer}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+    <section className="bg-gray-50 py-20">
+      <div className="mx-auto max-w-4xl px-4">
+        <SectionTitle eyebrow="FAQ" title="Common questions" />
+        <div className="space-y-4">
+          {schoolConfig.faq.slice(0, 6).map((f, i) => <div key={f.question} className="overflow-hidden rounded-3xl bg-white shadow-sm"><button onClick={() => setOpen(open === i ? -1 : i)} className="flex w-full items-center justify-between px-6 py-5 text-left font-black text-gray-950"><span>{f.question}</span><span>{open === i ? '−' : '+'}</span></button>{open === i && <p className="px-6 pb-6 leading-7 text-gray-600">{f.answer}</p>}</div>)}
         </div>
       </div>
     </section>
   );
 };
 
-// ============================================
-// CONTACT SECTION
-// ============================================
-const ContactSection = () => {
-  const [contactForm, setContactForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
-  });
+const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
+  <section id="contact" className="bg-gray-950 py-20 text-white">
+    <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2">
+      <div><p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Contact</p><h2 className="mt-3 text-4xl font-black md:text-5xl">Demo, admission ya school visit ke liye contact karein</h2><p className="mt-5 leading-8 text-gray-300">{schoolConfig.contact.address}</p><div className="mt-8 grid gap-4 sm:grid-cols-2"><a href={`tel:${schoolConfig.contact.phone}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📞 {schoolConfig.contact.phone}</a><a href={`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="rounded-3xl bg-green-600 p-5 font-black hover:bg-green-700">💬 WhatsApp Now</a><a href={`mailto:${schoolConfig.contact.email}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📧 Email</a><button onClick={onOpenLogin} className="rounded-3xl bg-red-600 p-5 text-left font-black hover:bg-red-700">🔐 ERP Demo Login</button></div></div>
+      <div className="rounded-[2rem] bg-white p-8 text-gray-950"><h3 className="text-2xl font-black">Client Demo Checklist</h3><ul className="mt-6 space-y-4 text-gray-700">{['Landing page premium look ready', 'Admission inquiry WhatsApp connected', 'ERP demo login button visible', 'Mobile responsive design improved', 'SEO/PWA files already included'].map((x) => <li key={x} className="flex gap-3"><span className="text-green-600">✓</span><span className="font-semibold">{x}</span></li>)}</ul></div>
+    </div>
+  </section>
+);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Thank you for contacting us! We will get back to you soon.');
-    setContactForm({ name: '', email: '', phone: '', subject: '', message: '' });
-  };
+const Footer = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
+  <footer className="bg-black py-10 text-gray-400">
+    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 md:flex-row md:items-center md:justify-between">
+      <div><p className="text-xl font-black text-white">{schoolConfig.schoolName}</p><p className="mt-1 text-sm">{schoolConfig.footer.copyright}</p></div>
+      <div className="flex flex-wrap gap-4 text-sm font-bold"><a href="#home">Home</a><a href="#admission">Admission</a><a href="#contact">Contact</a><button onClick={onOpenLogin}>ERP Login</button></div>
+    </div>
+  </footer>
+);
 
-  return (
-    <section id="contact" className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <SectionTitle 
-          title="Contact Us" 
-          subtitle="Get in touch with us"
-        />
-
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Contact Info */}
-          <div>
-            <div className="bg-white rounded-3xl p-8 shadow-lg mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">Contact Information</h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">📍</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 mb-1">Address</h4>
-                    <p className="text-gray-600">{schoolConfig.contact.address}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">📞</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 mb-1">Phone</h4>
-                    <a href={`tel:${schoolConfig.contact.phone}`} className="text-red-600 hover:underline">
-                      {schoolConfig.contact.phone}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">💬</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 mb-1">WhatsApp</h4>
-                    <a 
-                      href={`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '')}`}
-                      className="text-green-600 hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {schoolConfig.contact.whatsapp}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">📧</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-800 mb-1">Email</h4>
-                    <a href={`mailto:${schoolConfig.contact.email}`} className="text-red-600 hover:underline">
-                      {schoolConfig.contact.email}
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Media */}
-              <div className="mt-8 pt-8 border-t">
-                <h4 className="font-semibold text-gray-800 mb-4">Follow Us</h4>
-                <div className="flex space-x-4">
-                  <a href={schoolConfig.socialMedia.facebook} className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
-                    f
-                  </a>
-                  <a href={schoolConfig.socialMedia.instagram} className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-                    📷
-                  </a>
-                  <a href={schoolConfig.socialMedia.twitter} className="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center text-white hover:bg-blue-500 transition-colors">
-                    𝕏
-                  </a>
-                  <a href={schoolConfig.socialMedia.youtube} className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-colors">
-                    ▶
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Google Map Placeholder */}
-            <div className="bg-white rounded-3xl overflow-hidden shadow-lg">
-              <div className="h-64 bg-gray-200 flex items-center justify-center">
-                <div className="text-center">
-                  <span className="text-4xl mb-2 block">🗺️</span>
-                  <p className="text-gray-600">Google Map</p>
-                  <a 
-                    href={schoolConfig.contact.googleMapLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-600 hover:underline text-sm mt-2 inline-block"
-                  >
-                    Open in Google Maps →
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Form */}
-          <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Send us a Message</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                <input
-                  type="text"
-                  required
-                  value={contactForm.name}
-                  onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter your name"
-                />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={contactForm.email}
-                    onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="email@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                  <input
-                    type="tel"
-                    value={contactForm.phone}
-                    onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="+91 XXXXX XXXXX"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                <input
-                  type="text"
-                  required
-                  value={contactForm.subject}
-                  onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="What is this about?"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                <textarea
-                  required
-                  value={contactForm.message}
-                  onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                  rows={5}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Your message..."
-                />
-              </div>
-
-              <Button type="submit" className="w-full">
-                Send Message
-              </Button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ============================================
-// FOOTER COMPONENT
-// ============================================
-const Footer = () => {
-  return (
-    <footer className="bg-gray-800 text-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* School Info */}
-          <div>
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="w-10 h-10 object-contain" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">{schoolConfig.schoolName}</h3>
-                <p className="text-gray-400 text-sm">{schoolConfig.tagline}</p>
-              </div>
-            </div>
-            <p className="text-gray-400 mb-6">{schoolConfig.shortDescription}</p>
-            <div className="flex space-x-4">
-              <a href={schoolConfig.socialMedia.facebook} className="text-gray-400 hover:text-white transition-colors">FB</a>
-              <a href={schoolConfig.socialMedia.instagram} className="text-gray-400 hover:text-white transition-colors">IG</a>
-              <a href={schoolConfig.socialMedia.twitter} className="text-gray-400 hover:text-white transition-colors">TW</a>
-              <a href={schoolConfig.socialMedia.youtube} className="text-gray-400 hover:text-white transition-colors">YT</a>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-bold text-lg mb-6">Quick Links</h4>
-            <ul className="space-y-3">
-              {schoolConfig.footer.quickLinks.map((link, index) => (
-                <li key={index}>
-                  <a href={link.href} className="text-gray-400 hover:text-white transition-colors">
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="font-bold text-lg mb-6">Contact</h4>
-            <ul className="space-y-3 text-gray-400">
-              <li className="flex items-start space-x-3">
-                <span>📍</span>
-                <span>{schoolConfig.contact.address}</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <span>📞</span>
-                <a href={`tel:${schoolConfig.contact.phone}`} className="hover:text-white">
-                  {schoolConfig.contact.phone}
-                </a>
-              </li>
-              <li className="flex items-center space-x-3">
-                <span>📧</span>
-                <a href={`mailto:${schoolConfig.contact.email}`} className="hover:text-white">
-                  {schoolConfig.contact.email}
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h4 className="font-bold text-lg mb-6">Stay Updated</h4>
-            <p className="text-gray-400 mb-4">Subscribe to get latest updates and notices</p>
-            <div className="flex">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="flex-1 px-4 py-3 rounded-l-lg bg-gray-700 border-none focus:ring-2 focus:ring-red-500 text-white"
-              />
-              <button className="bg-red-600 px-6 py-3 rounded-r-lg hover:bg-red-700 transition-colors">
-                →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-          <p>{schoolConfig.footer.copyright}</p>
-        </div>
-      </div>
-    </footer>
-  );
-};
-
-// ============================================
-// FLOATING ACTION BUTTONS
-// ============================================
 const FloatingButtons = () => {
-  const [showBackToTop, setShowBackToTop] = useState(false);
-
+  const [showTop, setShowTop] = useState(false);
   useEffect(() => {
-    const handleScroll = () => setShowBackToTop(window.scrollY > 500);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setShowTop(window.scrollY > 500);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  return (
-    <>
-      {/* WhatsApp Button */}
-      <a
-        href={`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '')}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all hover:scale-110"
-        title="Chat on WhatsApp"
-      >
-        <span className="text-2xl">💬</span>
-      </a>
-
-      {/* Call Button */}
-      <a
-        href={`tel:${schoolConfig.contact.phone}`}
-        className="fixed bottom-6 right-24 z-40 w-14 h-14 bg-red-600 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-all hover:scale-110"
-        title="Call Now"
-      >
-        <span className="text-2xl">📞</span>
-      </a>
-
-      {/* Back to Top Button */}
-      {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 left-6 z-40 w-14 h-14 bg-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-900 transition-all hover:scale-110"
-          title="Back to Top"
-        >
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-          </svg>
-        </button>
-      )}
-    </>
-  );
+  return <><a href={`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-2xl shadow-xl">💬</a>{showTop && <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="fixed bottom-6 left-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gray-950 text-xl text-white shadow-xl">↑</button>}</>;
 };
 
-// ============================================
-// MAIN APP COMPONENT
-// ============================================
 function App() {
   const [activeView, setActiveView] = useState<'website' | 'erp'>('website');
-
   useEffect(() => {
-    if (window.location.hash === '#login' || window.location.hash.startsWith('#erp')) {
-      setActiveView('erp');
-    }
+    if (window.location.hash === '#login' || window.location.hash.startsWith('#erp')) setActiveView('erp');
   }, []);
-
-  const openLogin = () => {
-    window.location.hash = 'login';
-    setActiveView('erp');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const openWebsite = () => {
-    window.location.hash = 'home';
-    setActiveView('website');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  if (activeView === 'erp') {
-    return <ErpApp onBackHome={openWebsite} />;
-  }
-
-  return (
-    <div className="min-h-screen bg-white">
-      <Header onOpenLogin={openLogin} />
-      <main>
-        <HeroSection />
-        <AboutSection />
-        <PrincipalMessage />
-        <AdmissionSection />
-        <ClassesSection />
-        <FacilitiesSection />
-        <NoticeBoardSection />
-        <TeachersSection />
-        <GallerySection />
-        <EventsSection />
-        <AchievementsSection />
-        <FAQSection />
-        <ContactSection />
-      </main>
-      <Footer />
-      <FloatingButtons />
-    </div>
-  );
+  const openLogin = () => { window.location.hash = 'login'; setActiveView('erp'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const openWebsite = () => { window.location.hash = 'home'; setActiveView('website'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  if (activeView === 'erp') return <ErpApp onBackHome={openWebsite} />;
+  return <div className="min-h-screen bg-white"><Header onOpenLogin={openLogin} /><main><HeroSection onOpenLogin={openLogin} /><TrustBar /><ErpModulesSection /><AboutSection /><AdmissionSection /><FacilitiesSection /><GallerySection /><TestimonialsSection /><FAQSection /><ContactSection onOpenLogin={openLogin} /></main><Footer onOpenLogin={openLogin} /><FloatingButtons /></div>;
 }
 
 export default App;
