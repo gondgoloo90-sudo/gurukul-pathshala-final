@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { schoolConfig } from './config/schoolData';
 import ErpApp from './erp/ErpApp';
+import { useWebsiteSettings } from './hooks/useWebsiteSettings';
 
 type ButtonVariant = 'primary' | 'dark' | 'light' | 'outline';
 
 const Button = ({ children, href, onClick, variant = 'primary', className = '' }: { children: React.ReactNode; href?: string; onClick?: () => void; variant?: ButtonVariant; className?: string }) => {
   const styles: Record<ButtonVariant, string> = {
-    primary: 'bg-red-600 text-white hover:bg-red-700 shadow-xl shadow-red-600/20',
-    dark: 'bg-gray-950 text-white hover:bg-gray-800 shadow-xl shadow-gray-950/20',
-    light: 'bg-white text-red-700 hover:bg-red-50 shadow-xl shadow-white/20',
-    outline: 'border border-white/40 text-white hover:bg-white hover:text-red-700',
+    // bg-[var(--site-primary)] / bg-[var(--site-secondary)] read live brand colors
+    // saved from Admin -> Website Control Panel (falls back to original red/black).
+    primary: 'bg-[var(--site-primary)] text-white hover:opacity-90 shadow-xl shadow-red-600/20',
+    dark: 'bg-[var(--site-secondary)] text-white hover:opacity-90 shadow-xl shadow-gray-950/20',
+    light: 'bg-white text-[var(--site-primary)] hover:bg-red-50 shadow-xl shadow-white/20',
+    outline: 'border border-white/40 text-white hover:bg-white hover:text-[var(--site-primary)]',
   };
   const cls = `inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${styles[variant]} ${className}`;
   if (href) return <a href={href} onClick={onClick} className={cls}>{children}</a>;
@@ -18,13 +21,14 @@ const Button = ({ children, href, onClick, variant = 'primary', className = '' }
 
 const SectionTitle = ({ eyebrow, title, subtitle }: { eyebrow?: string; title: string; subtitle?: string }) => (
   <div className="mx-auto mb-12 max-w-3xl text-center">
-    {eyebrow && <p className="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-red-600">{eyebrow}</p>}
+    {eyebrow && <p className="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-[var(--site-primary)]">{eyebrow}</p>}
     <h2 className="text-3xl font-black tracking-tight text-gray-950 md:text-5xl">{title}</h2>
     {subtitle && <p className="mt-5 text-lg leading-8 text-gray-600">{subtitle}</p>}
   </div>
 );
 
 const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
+  const { branding } = useWebsiteSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -44,10 +48,10 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
         <div className="flex h-20 items-center justify-between">
           <a href="#home" className="flex items-center gap-3">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white p-1 shadow-lg ring-1 ring-red-100">
-              <img src="/logo.svg.png" alt={schoolConfig.logo.alt} className="h-full w-full object-contain" onError={(e) => ((e.currentTarget.src = '/logo.svg'))} />
+              <img src={branding.logoUrl} alt={schoolConfig.logo.alt} className="h-full w-full object-contain" onError={(e) => ((e.currentTarget.src = '/logo.svg'))} />
             </span>
             <span>
-              <span className={`block text-xl font-black ${scrolled ? 'text-gray-950' : 'text-white'}`}>{schoolConfig.schoolName}</span>
+              <span className={`block text-xl font-black ${scrolled ? 'text-gray-950' : 'text-white'}`}>{branding.schoolName}</span>
               <span className={`block text-xs font-semibold ${scrolled ? 'text-gray-500' : 'text-red-100'}`}>Premium School Website + ERP</span>
             </span>
           </a>
@@ -74,11 +78,15 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
 };
 
 const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
+  const { homepage, branding } = useWebsiteSettings();
   const stats = [
     ['500+', 'Students'], ['30+', 'Staff'], ['12+', 'ERP Modules'], ['100%', 'Demo Ready']
   ];
   return (
     <section id="home" className="relative overflow-hidden bg-gray-950 pt-24 text-white">
+      {branding.heroBackgroundImage && (
+        <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: `url(${branding.heroBackgroundImage})` }} />
+      )}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.55),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.35),transparent_30%)]" />
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '42px 42px' }} />
       <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
@@ -86,13 +94,13 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
           <div>
             <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Client Demo Ready • Admission Open 2026-27</div>
             <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl">
-              School Website + <span className="text-yellow-300">Smart ERP</span> Demo
+              {homepage.heroTitle}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-red-50 md:text-xl">
-              Gurukul Pathshala ke liye premium school website, admission inquiry, WhatsApp lead, notice board, gallery aur Admin/Teacher/Student ERP demo — sab ek hi professional platform par.
+              {homepage.heroSubtitle}
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <Button href="#admission" variant="light">Admission Inquiry</Button>
+              <Button href={homepage.ctaLink} variant="light">{homepage.ctaText}</Button>
               <Button onClick={onOpenLogin} variant="outline">View ERP Demo →</Button>
             </div>
             <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -133,6 +141,7 @@ const TrustBar = () => (
 );
 
 const ErpModulesSection = () => {
+  const { homepage } = useWebsiteSettings();
   const modules = [
     ['👨‍💼', 'Admin Dashboard', 'Admissions, fees, attendance, notices, analytics and school settings.'],
     ['👨‍🏫', 'Teacher Portal', 'Homework, attendance, marks, timetable and class communication.'],
@@ -144,7 +153,7 @@ const ErpModulesSection = () => {
   return (
     <section id="erp-modules" className="bg-gray-50 py-20">
       <div className="mx-auto max-w-7xl px-4">
-        <SectionTitle eyebrow="ERP Modules" title="School management ko simple aur professional banaye" subtitle="Client ko demo dene ke liye website ke saath ERP preview ready hai." />
+        <SectionTitle eyebrow="ERP Modules" title="School management ko simple aur professional banaye" subtitle={homepage.featuresText} />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {modules.map(([icon, title, desc]) => <div key={title} className="rounded-[1.5rem] border border-gray-100 bg-white p-7 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"><div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-3xl">{icon}</div><h3 className="text-xl font-black text-gray-950">{title}</h3><p className="mt-3 leading-7 text-gray-600">{desc}</p></div>)}
         </div>
@@ -153,11 +162,13 @@ const ErpModulesSection = () => {
   );
 };
 
-const AboutSection = () => (
+const AboutSection = () => {
+  const { homepage } = useWebsiteSettings();
+  return (
   <section id="about" className="bg-white py-20">
     <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 lg:grid-cols-2">
       <div>
-        <SectionTitle eyebrow="About" title="Education + Technology ka perfect combination" subtitle={schoolConfig.shortDescription} />
+        <SectionTitle eyebrow="About" title="Education + Technology ka perfect combination" subtitle={homepage.aboutText} />
         <div className="grid gap-4 sm:grid-cols-2">
           {schoolConfig.whyChooseUs.map((item) => <div key={item.title} className="rounded-3xl bg-gray-50 p-5"><div className="text-3xl">{item.icon}</div><h3 className="mt-3 font-black text-gray-950">{item.title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{item.description}</p></div>)}
         </div>
@@ -172,14 +183,16 @@ const AboutSection = () => (
       </div>
     </div>
   </section>
-);
+  );
+};
 
 const AdmissionSection = () => {
+  const { contact } = useWebsiteSettings();
   const [formData, setFormData] = useState({ parentName: '', studentName: '', classApplied: '', phone: '', message: '' });
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const text = `Admission Inquiry%0AParent: ${formData.parentName}%0AStudent: ${formData.studentName}%0AClass: ${formData.classApplied}%0APhone: ${formData.phone}%0AMessage: ${formData.message}`;
-    window.open(`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '').replace(/\s/g, '')}?text=${text}`, '_blank');
+    window.open(`https://wa.me/${contact.whatsapp.replace('+', '').replace(/\s/g, '')}?text=${text}`, '_blank');
   };
   return (
     <section id="admission" className="bg-gradient-to-br from-red-50 to-amber-50 py-20">
@@ -218,16 +231,24 @@ const FacilitiesSection = () => (
   </section>
 );
 
-const GallerySection = () => (
+const GallerySection = () => {
+  const { gallery } = useWebsiteSettings();
+  return (
   <section id="gallery" className="bg-gray-50 py-20">
     <div className="mx-auto max-w-7xl px-4">
       <SectionTitle eyebrow="Gallery" title="School life ka professional preview" subtitle="Infrastructure, events, sports aur classroom activities ek modern gallery me." />
+      {gallery.banners.length > 0 && (
+        <div className="mb-8 flex gap-4 overflow-x-auto pb-2">
+          {gallery.banners.map((banner) => <img key={banner.id} src={banner.src} alt={banner.alt} className="h-32 w-auto shrink-0 rounded-2xl object-cover shadow-sm" />)}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {schoolConfig.gallery.slice(0, 8).map((img) => <div key={img.src} className="group relative aspect-square overflow-hidden rounded-[1.5rem] bg-red-100 shadow-sm"><img src={img.src} alt={img.alt} className="h-full w-full object-cover transition-transform group-hover:scale-110" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-sm font-bold text-white">{img.alt}</div></div>)}
+        {gallery.images.slice(0, 8).map((img) => <div key={img.id} className="group relative aspect-square overflow-hidden rounded-[1.5rem] bg-red-100 shadow-sm"><img src={img.src} alt={img.alt} className="h-full w-full object-cover transition-transform group-hover:scale-110" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-sm font-bold text-white">{img.alt}</div></div>)}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 const TestimonialsSection = () => {
   const testimonials = [
@@ -349,39 +370,95 @@ const FinalCTA = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
   </section>
 );
 
-const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
+const socialIcons: Record<string, string> = { facebook: '📘', instagram: '📸', twitter: '🐦', youtube: '▶️' };
+
+const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
+  const { contact } = useWebsiteSettings();
+  const socialEntries = Object.entries(contact.social).filter(([, url]) => url);
+  return (
   <section id="contact" className="bg-gray-950 py-20 text-white">
     <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2">
-      <div><p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Contact</p><h2 className="mt-3 text-4xl font-black md:text-5xl">Demo, admission ya school visit ke liye contact karein</h2><p className="mt-5 leading-8 text-gray-300">{schoolConfig.contact.address}</p><div className="mt-8 grid gap-4 sm:grid-cols-2"><a href={`tel:${schoolConfig.contact.phone}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📞 {schoolConfig.contact.phone}</a><a href={`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="rounded-3xl bg-green-600 p-5 font-black hover:bg-green-700">💬 WhatsApp Now</a><a href={`mailto:${schoolConfig.contact.email}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📧 Email</a><button onClick={onOpenLogin} className="rounded-3xl bg-red-600 p-5 text-left font-black hover:bg-red-700">🔐 ERP Demo Login</button></div></div>
+      <div>
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Contact</p>
+        <h2 className="mt-3 text-4xl font-black md:text-5xl">Demo, admission ya school visit ke liye contact karein</h2>
+        <p className="mt-5 leading-8 text-gray-300">{contact.address}</p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <a href={`tel:${contact.phone}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📞 {contact.phone}</a>
+          <a href={`https://wa.me/${contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="rounded-3xl bg-green-600 p-5 font-black hover:bg-green-700">💬 WhatsApp Now</a>
+          <a href={`mailto:${contact.email}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📧 Email</a>
+          {contact.googleMapLink && <a href={contact.googleMapLink} target="_blank" rel="noreferrer" className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📍 View on Map</a>}
+          <button onClick={onOpenLogin} className="rounded-3xl bg-[var(--site-primary)] p-5 text-left font-black hover:opacity-90 sm:col-span-2">🔐 ERP Demo Login</button>
+        </div>
+        {socialEntries.length > 0 && (
+          <div className="mt-6 flex gap-3">
+            {socialEntries.map(([platform, url]) => (
+              <a key={platform} href={url} target="_blank" rel="noreferrer" aria-label={platform} className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-xl hover:bg-white/15">{socialIcons[platform] || '🔗'}</a>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="rounded-[2rem] bg-white p-8 text-gray-950"><h3 className="text-2xl font-black">Client Demo Checklist</h3><ul className="mt-6 space-y-4 text-gray-700">{['Landing page premium look ready', 'Admission inquiry WhatsApp connected', 'ERP demo login button visible', 'Mobile responsive design improved', 'SEO/PWA files already included'].map((x) => <li key={x} className="flex gap-3"><span className="text-green-600">✓</span><span className="font-semibold">{x}</span></li>)}</ul></div>
     </div>
   </section>
-);
+  );
+};
 
-const Footer = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
+const Footer = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
+  const { branding } = useWebsiteSettings();
+  return (
   <footer className="bg-black py-10 text-gray-400">
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 md:flex-row md:items-center md:justify-between">
-      <div><p className="text-xl font-black text-white">{schoolConfig.schoolName}</p><p className="mt-1 text-sm">{schoolConfig.footer.copyright}</p></div>
+      <div><p className="text-xl font-black text-white">{branding.schoolName}</p><p className="mt-1 text-sm">{schoolConfig.footer.copyright}</p></div>
       <div className="flex flex-wrap gap-4 text-sm font-bold"><a href="#home">Home</a><a href="#admission">Admission</a><a href="#contact">Contact</a><button onClick={onOpenLogin}>ERP Login</button></div>
     </div>
   </footer>
-);
+  );
+};
 
 const FloatingButtons = () => {
+  const { contact } = useWebsiteSettings();
   const [showTop, setShowTop] = useState(false);
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 500);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-  return <><a href={`https://wa.me/${schoolConfig.contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-2xl shadow-xl">💬</a>{showTop && <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="fixed bottom-6 left-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gray-950 text-xl text-white shadow-xl">↑</button>}</>;
+  return <><a href={`https://wa.me/${contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-2xl shadow-xl">💬</a>{showTop && <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="fixed bottom-6 left-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gray-950 text-xl text-white shadow-xl">↑</button>}</>;
 };
 
 function App() {
   const [activeView, setActiveView] = useState<'website' | 'erp'>('website');
+  const { branding, seo } = useWebsiteSettings();
+
   useEffect(() => {
     if (window.location.hash === '#login' || window.location.hash.startsWith('#erp')) setActiveView('erp');
   }, []);
+
+  // Live-apply brand colors (CSS variables) + SEO tags + favicon whenever
+  // Admin saves changes in Website Control Panel.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--site-primary', branding.primaryColor);
+    document.documentElement.style.setProperty('--site-secondary', branding.secondaryColor);
+
+    document.title = seo.title;
+
+    const setMeta = (selector: string, attr: string, value: string) => {
+      let el = document.head.querySelector<HTMLMetaElement>(selector);
+      if (!el) { el = document.createElement('meta'); document.head.appendChild(el); }
+      el.setAttribute(attr.startsWith('og:') || attr.startsWith('twitter:') ? 'property' : 'name', attr);
+      el.setAttribute('content', value);
+    };
+    setMeta('meta[name="description"]', 'description', seo.metaDescription);
+    setMeta('meta[name="keywords"]', 'keywords', seo.keywords);
+    if (seo.ogImage) setMeta('meta[property="og:image"]', 'og:image', seo.ogImage);
+
+    if (branding.faviconUrl) {
+      let favicon = document.head.querySelector<HTMLLinkElement>('link[rel="icon"]');
+      if (!favicon) { favicon = document.createElement('link'); favicon.rel = 'icon'; document.head.appendChild(favicon); }
+      favicon.href = branding.faviconUrl;
+    }
+  }, [branding, seo]);
+
   const openLogin = () => { window.location.hash = 'login'; setActiveView('erp'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const openWebsite = () => { window.location.hash = 'home'; setActiveView('website'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   if (activeView === 'erp') return <ErpApp onBackHome={openWebsite} />;

@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+/* Live-editable brand colors from Admin -> Website Control Panel.
+   These defaults match the original design; JS overrides them at runtime
+   once the admin saves custom colors (see src/hooks/useWebsiteSettings.ts). */
+:root {
+  --site-primary: #DC2626;
+  --site-secondary: #030712;
+}

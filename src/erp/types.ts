@@ -20,7 +20,8 @@ export type ErpPage =
   | 'messages'
   | 'calendar'
   | 'result'
-  | 'profile';
+  | 'profile'
+  | 'website-settings';
 
 export interface DashboardStat {
   label: string;

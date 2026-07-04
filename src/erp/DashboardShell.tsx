@@ -24,6 +24,7 @@ const menuByRole: Record<UserRole, { label: string; icon: string; page: ErpPage;
     { label: 'Transport', icon: '🚌', page: 'transport' },
     { label: 'Notice Board', icon: '📢', page: 'notices' },
     { label: 'Documents', icon: '📁', page: 'documents' },
+    { label: 'Website Control Panel', icon: '🌐', page: 'website-settings' },
     { label: 'Settings', icon: '⚙️', page: 'settings' },
   ],
   teacher: [

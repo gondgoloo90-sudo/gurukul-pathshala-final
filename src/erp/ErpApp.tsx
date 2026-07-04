@@ -3,6 +3,7 @@ import DashboardHome from './DashboardHome';
 import DashboardShell from './DashboardShell';
 import LoginPage from './LoginPage';
 import ErpPages from './ErpPages';
+import WebsiteControlPanel from './WebsiteControlPanel';
 import type { ErpPage } from './types';
 import { clearSession, getSession, type AuthUser } from './auth';
 
@@ -27,10 +28,17 @@ const ErpApp = ({ onBackHome }: ErpAppProps) => {
     );
   }
 
+  // Defense in depth: "Website Control Panel" is Admin-only. The sidebar only
+  // shows this item to Admin, but this guard blocks direct access too, in
+  // case activePage is ever set another way.
+  const isWebsiteSettings = activePage === 'website-settings';
+  const canViewWebsiteSettings = isWebsiteSettings && user.role === 'admin';
+  const page = isWebsiteSettings && !canViewWebsiteSettings ? 'dashboard' : activePage;
+
   return (
     <DashboardShell
       role={user.role}
-      activePage={activePage}
+      activePage={page}
       onNavigate={setActivePage}
       onLogout={() => {
         clearSession();
@@ -39,7 +47,7 @@ const ErpApp = ({ onBackHome }: ErpAppProps) => {
       }}
       onBackHome={onBackHome}
     >
-      {activePage === 'dashboard' ? <DashboardHome role={user.role} /> : <ErpPages role={user.role} page={activePage} onNavigate={setActivePage} />}
+      {page === 'dashboard' ? <DashboardHome role={user.role} /> : canViewWebsiteSettings ? <WebsiteControlPanel /> : <ErpPages role={user.role} page={page} onNavigate={setActivePage} />}
     </DashboardShell>
   );
 };
