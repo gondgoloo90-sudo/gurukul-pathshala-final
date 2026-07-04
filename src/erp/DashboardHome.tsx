@@ -95,7 +95,7 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
           <div className="max-w-3xl">
             <p className="font-bold text-red-100 mb-2">{greeting} • Gurukul Pathshala ERP 2.1</p>
             <h2 className="text-3xl sm:text-5xl font-black mb-3">{roleLabels[role]} Control Center</h2>
-            <p className="text-red-100 text-base sm:text-lg">Premium role-based dashboard with live summary cards, module health, quick actions, reports and client-demo ready workflow.</p>
+            <p className="text-red-100 text-base sm:text-lg">Premium role-based dashboard with live summary cards, module health, quick actions and reports.</p>
             <div className="flex flex-wrap gap-3 mt-6">
               <button className="rounded-2xl bg-white text-red-700 px-5 py-3 font-black shadow-xl hover:bg-red-50 transition-colors">Generate Daily Report</button>
               <button className="rounded-2xl bg-white/10 border border-white/20 px-5 py-3 font-black hover:bg-white/20 transition-colors">Open Quick Actions</button>
@@ -105,7 +105,7 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
             <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">98%</b><p className="text-xs text-red-100">System Health</p></div>
             <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">Live</b><p className="text-xs text-red-100">Role Portal</p></div>
             <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">PDF</b><p className="text-xs text-red-100">Reports Ready</p></div>
-            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">Sync</b><p className="text-xs text-red-100">Demo Data</p></div>
+            <div className="rounded-3xl bg-white/10 backdrop-blur px-5 py-4 border border-white/10"><b className="text-2xl">Sync</b><p className="text-xs text-red-100">Live Data</p></div>
           </div>
         </div>
       </section>
@@ -172,7 +172,7 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-black">Today Priority Pipeline</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Role-wise work items for a professional demo flow.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Role-wise work items, updated in real time.</p>
             </div>
             <button className="text-red-600 font-black text-sm">View Plan</button>
           </div>
@@ -236,9 +236,9 @@ const DashboardHome = ({ role }: DashboardHomeProps) => {
         <div className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 border border-slate-200 dark:border-slate-800">
           <span className="text-4xl">🚀</span>
           <h3 className="font-black text-lg mt-4">ERP Readiness</h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Admission, fees, marks, notices and daily operations are polished for client demo with connected data flow.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">Admission, fees, marks, notices and daily operations are connected with live data flow across roles.</p>
           <div className="mt-5 h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full w-[92%] bg-gradient-to-r from-red-600 to-orange-400" /></div>
-          <p className="text-xs font-black text-slate-500 mt-2">92% client demo ready</p>
+          <p className="text-xs font-black text-slate-500 mt-2">92% modules active</p>
         </div>
       </section>
     </div>

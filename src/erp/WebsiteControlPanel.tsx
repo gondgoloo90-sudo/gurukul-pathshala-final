@@ -171,7 +171,7 @@ const WebsiteControlPanel = () => {
       )}
 
       <div className="mb-6 rounded-2xl bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-5 py-3 text-sm font-bold">
-        ℹ️ Images abhi demo storage (browser) me save hote hain. Production me image Cloudinary/S3/server storage par upload hogi.
+        ℹ️ Images abhi is browser me save hote hain. Production me image Cloudinary/S3/server storage par upload hogi.
       </div>
 
       {/* Tabs */}

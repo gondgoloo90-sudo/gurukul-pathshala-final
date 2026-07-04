@@ -12,10 +12,10 @@ interface LoginPageProps {
 
 type Screen = 'role' | 'form' | 'forgot';
 
-const roles: { role: UserRole; icon: string; description: string; demo: string }[] = [
-  { role: 'admin', icon: '🛡️', description: 'Manage school, fees, students and reports', demo: 'admin@gurukul.com' },
-  { role: 'teacher', icon: '👩‍🏫', description: 'Attendance, homework, marks and classes', demo: 'teacher@gurukul.com' },
-  { role: 'student', icon: '🎓', description: 'Homework, results, attendance and fees', demo: 'student@gurukul.com' },
+const roles: { role: UserRole; icon: string; description: string }[] = [
+  { role: 'admin', icon: '🛡️', description: 'Manage school, fees, students and reports' },
+  { role: 'teacher', icon: '👩‍🏫', description: 'Attendance, homework, marks and classes' },
+  { role: 'student', icon: '🎓', description: 'Homework, results, attendance and fees' },
 ];
 
 const BrandPanel = ({ onBackHome }: { onBackHome: () => void }) => (
@@ -73,10 +73,9 @@ const LoginPage = ({ onLoginSuccess, onBackHome }: LoginPageProps) => {
   const [otpLoading, setOtpLoading] = useState(false);
 
   const openRoleForm = (role: UserRole) => {
-    const selected = roles.find((item) => item.role === role)!;
     setSelectedRole(role);
-    setEmail(selected.demo);
-    setPassword('123456');
+    setEmail('');
+    setPassword('');
     setError('');
     setShowPassword(false);
     setScreen('form');
@@ -255,7 +254,7 @@ const LoginPage = ({ onLoginSuccess, onBackHome }: LoginPageProps) => {
               </button>
             </form>
 
-            <div className="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-center text-xs text-slate-500 font-semibold">Demo password: 123456 • No real data saved yet</div>
+            <div className="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-center text-xs text-slate-500 font-semibold">Trouble logging in? Contact your school admin office.</div>
           </CardShell>
         )}
 
@@ -328,7 +327,7 @@ const LoginPage = ({ onLoginSuccess, onBackHome }: LoginPageProps) => {
             )}
 
             <div className="mt-5 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-center text-xs text-amber-700 font-bold">
-              ℹ️ OTP verification is demo-ready. Backend integration can be added later.
+              ℹ️ OTP verification is being set up. Please contact your school admin office for a password reset for now.
             </div>
           </CardShell>
         )}

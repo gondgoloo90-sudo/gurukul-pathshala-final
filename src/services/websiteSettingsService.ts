@@ -77,13 +77,13 @@ export const defaultWebsiteSettings: WebsiteSettings = {
     heroBackgroundImage: '',
   },
   homepage: {
-    heroTitle: 'School Website + Smart ERP Demo',
+    heroTitle: 'School Website + Smart School ERP',
     heroSubtitle:
-      'Gurukul Pathshala ke liye premium school website, admission inquiry, WhatsApp lead, notice board, gallery aur Admin/Teacher/Student ERP demo — sab ek hi professional platform par.',
+      'Gurukul Pathshala ki official school website — admission inquiry, WhatsApp lead, notice board, gallery aur Admin/Teacher/Student School ERP — sab ek hi professional platform par.',
     ctaText: 'Admission Inquiry',
     ctaLink: '#admission',
     aboutText: schoolConfig.shortDescription,
-    featuresText: 'Client ko demo dene ke liye website ke saath ERP preview ready hai.',
+    featuresText: 'Gurukul Pathshala School ERP se admission, attendance, fees aur results — sab digitally manage hote hain.',
   },
   gallery: {
     images: schoolConfig.gallery.map((img, index) => ({ id: `gal-${index + 1}`, src: img.src, alt: img.alt })),

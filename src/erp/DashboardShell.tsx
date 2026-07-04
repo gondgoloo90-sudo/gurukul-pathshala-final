@@ -156,7 +156,7 @@ const DashboardShell = ({ role, children, activePage, onNavigate, onLogout, onBa
           <main className="p-4 sm:p-8">{children}</main>
           <footer className="px-4 sm:px-8 pb-8 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
             <span>Gurukul ERP Version 2.1 • Enterprise Dashboard Polish</span>
-            <span>Client Demo Ready • Gurukul Pathshala © 2026</span>
+            <span>Gurukul Pathshala School ERP © 2026</span>
           </footer>
         </div>
       </div>

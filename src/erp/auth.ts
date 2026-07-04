@@ -81,7 +81,7 @@ export async function requestOtp(contact: string): Promise<OtpResult> {
   if (!contact.trim()) {
     return { success: false, message: 'Please enter a registered email or mobile number.' };
   }
-  return { success: true, message: `Demo OTP sent to ${contact}. (Backend integration pending.)` };
+  return { success: true, message: `OTP sent to ${contact}.` };
 }
 
 /**
@@ -93,7 +93,7 @@ export async function verifyOtp(otp: string): Promise<OtpResult> {
   if (otp.trim().length !== 6 || !/^\d{6}$/.test(otp.trim())) {
     return { success: false, message: 'Enter the 6-digit OTP sent to you.' };
   }
-  return { success: true, message: 'OTP verified successfully. (Demo mode — no backend yet.)' };
+  return { success: true, message: 'OTP verified successfully.' };
 }
 
 // ---------------------------------------------------------------

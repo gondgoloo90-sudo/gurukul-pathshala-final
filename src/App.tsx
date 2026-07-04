@@ -80,7 +80,7 @@ const Header = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
 const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   const { homepage, branding } = useWebsiteSettings();
   const stats = [
-    ['500+', 'Students'], ['30+', 'Staff'], ['12+', 'ERP Modules'], ['100%', 'Demo Ready']
+    ['500+', 'Students'], ['30+', 'Staff'], ['12+', 'ERP Modules'], ['100%', 'School Managed']
   ];
   return (
     <section id="home" className="relative overflow-hidden bg-gray-950 pt-24 text-white">
@@ -92,7 +92,7 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
       <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Client Demo Ready • Admission Open 2026-27</div>
+            <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Admission Open 2026-27</div>
             <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl">
               {homepage.heroTitle}
             </h1>
@@ -101,7 +101,7 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Button href={homepage.ctaLink} variant="light">{homepage.ctaText}</Button>
-              <Button onClick={onOpenLogin} variant="outline">View ERP Demo →</Button>
+              <Button onClick={onOpenLogin} variant="outline">Access School ERP →</Button>
             </div>
             <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {stats.map(([value, label]) => <div key={label} className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur"><div className="text-3xl font-black text-yellow-300">{value}</div><div className="mt-1 text-xs font-semibold text-red-100">{label}</div></div>)}
@@ -116,12 +116,12 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
                   <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Online</span>
                 </div>
                 <div className="grid gap-3 py-4 sm:grid-cols-2">
-                  {['Admissions', 'Attendance', 'Fees', 'Report Cards'].map((item, i) => <div key={item} className="rounded-2xl bg-gray-50 p-4"><div className="text-2xl">{['📝','✅','💳','📊'][i]}</div><p className="mt-2 font-black">{item}</p><p className="text-sm text-gray-500">Ready module</p></div>)}
+                  {['Admissions', 'Attendance', 'Fees', 'Report Cards'].map((item, i) => <div key={item} className="rounded-2xl bg-gray-50 p-4"><div className="text-2xl">{['📝','✅','💳','📊'][i]}</div><p className="mt-2 font-black">{item}</p><p className="text-sm text-gray-500">Active module</p></div>)}
                 </div>
                 <div className="rounded-2xl bg-gradient-to-r from-red-600 to-red-700 p-5 text-white">
-                  <p className="text-sm font-bold text-red-100">Demo Login</p>
+                  <p className="text-sm font-bold text-red-100">School Login</p>
                   <p className="mt-1 text-xl font-black">Admin • Teacher • Student</p>
-                  <p className="mt-2 text-sm text-red-100">Client ko demo dikhane ke liye ready.</p>
+                  <p className="mt-2 text-sm text-red-100">Gurukul Pathshala School ERP.</p>
                 </div>
               </div>
             </div>
@@ -322,25 +322,25 @@ const NoticeEventsSection = () => (
 
 const PricingSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   const plans = [
-    ['Website Demo', 'For school presentation', ['Premium landing page', 'Admission inquiry', 'Gallery + FAQ', 'WhatsApp CTA']],
-    ['ERP Demo', 'For management preview', ['Admin dashboard', 'Teacher portal', 'Student portal', 'Fees + reports']],
-    ['Full Setup', 'For real school launch', ['Backend connection', 'Database setup', 'Online payments', 'Training + support']],
+    ['School Website', 'Our official public website', ['Premium landing page', 'Admission inquiry', 'Gallery + FAQ', 'WhatsApp CTA']],
+    ['School ERP', 'For daily school management', ['Admin Portal', 'Teacher Portal', 'Student Portal', 'Fees + reports']],
+    ['Complete Digital Campus', 'Website + ERP + support', ['Backend connection', 'Database setup', 'Online payments', 'Training + support']],
   ];
   return (
     <section id="pricing" className="bg-gray-50 py-20">
       <div className="mx-auto max-w-7xl px-4">
-        <SectionTitle eyebrow="Plans" title="Demo aur full setup ke liye clear packages" subtitle="Client ko price final karne se pehle website/ERP ka professional demo dikhaya ja sakta hai." />
+        <SectionTitle eyebrow="Our Platform" title="School Website aur School ERP — ek hi jagah" subtitle="Gurukul Pathshala apni official website aur School ERP dono is ek hi professional platform par chalata hai." />
         <div className="grid gap-6 lg:grid-cols-3">
           {plans.map(([name, desc, features], index) => (
             <div key={name as string} className={`rounded-[2rem] border p-7 shadow-sm ${index === 1 ? 'border-red-200 bg-white shadow-xl ring-4 ring-red-50' : 'border-gray-100 bg-white'}`}>
-              {index === 1 && <span className="mb-4 inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black text-white">Most Useful Demo</span>}
+              {index === 1 && <span className="mb-4 inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black text-white">Most Used</span>}
               <h3 className="text-2xl font-black text-gray-950">{name}</h3>
               <p className="mt-2 text-gray-600">{desc}</p>
               <ul className="mt-6 space-y-3">
                 {(features as string[]).map((f) => <li key={f} className="flex gap-3 font-semibold text-gray-700"><span className="text-green-600">✓</span>{f}</li>)}
               </ul>
               <button onClick={index === 1 ? onOpenLogin : undefined} className="mt-7 w-full rounded-2xl bg-gray-950 px-5 py-4 font-black text-white hover:bg-red-600">
-                {index === 1 ? 'View ERP Demo' : 'Request Callback'}
+                {index === 1 ? 'Access School ERP' : 'Request Callback'}
               </button>
             </div>
           ))}
@@ -356,12 +356,12 @@ const FinalCTA = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
       <div className="rounded-[2rem] bg-gradient-to-r from-red-600 via-red-700 to-gray-950 p-8 text-white shadow-2xl md:p-12">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-100">Ready for demo</p>
-            <h2 className="mt-3 text-3xl font-black md:text-5xl">School owner ko dikhane ke liye premium first impression ready</h2>
-            <p className="mt-5 max-w-2xl leading-8 text-red-50">Landing page se admission inquiry milegi aur ERP demo se school management ko real software feel aayega.</p>
+            <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-100">Admission Open 2026-27</p>
+            <h2 className="mt-3 text-3xl font-black md:text-5xl">Gurukul Pathshala — quality education, digitally managed</h2>
+            <p className="mt-5 max-w-2xl leading-8 text-red-50">Admission inquiry seedha yahan se karein, aur School ERP se hamara school management dekhein.</p>
           </div>
           <div className="flex flex-col gap-4 sm:flex-row lg:justify-end">
-            <Button onClick={onOpenLogin} variant="light">Open ERP Demo</Button>
+            <Button onClick={onOpenLogin} variant="light">Access School ERP</Button>
             <Button href="#contact" variant="outline">Contact Now</Button>
           </div>
         </div>
@@ -380,14 +380,14 @@ const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
     <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2">
       <div>
         <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Contact</p>
-        <h2 className="mt-3 text-4xl font-black md:text-5xl">Demo, admission ya school visit ke liye contact karein</h2>
+        <h2 className="mt-3 text-4xl font-black md:text-5xl">Admission ya school visit ke liye contact karein</h2>
         <p className="mt-5 leading-8 text-gray-300">{contact.address}</p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <a href={`tel:${contact.phone}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📞 {contact.phone}</a>
           <a href={`https://wa.me/${contact.whatsapp.replace('+', '').replace(/\s/g, '')}`} target="_blank" rel="noreferrer" className="rounded-3xl bg-green-600 p-5 font-black hover:bg-green-700">💬 WhatsApp Now</a>
           <a href={`mailto:${contact.email}`} className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📧 Email</a>
           {contact.googleMapLink && <a href={contact.googleMapLink} target="_blank" rel="noreferrer" className="rounded-3xl bg-white/10 p-5 font-black hover:bg-white/15">📍 View on Map</a>}
-          <button onClick={onOpenLogin} className="rounded-3xl bg-[var(--site-primary)] p-5 text-left font-black hover:opacity-90 sm:col-span-2">🔐 ERP Demo Login</button>
+          <button onClick={onOpenLogin} className="rounded-3xl bg-[var(--site-primary)] p-5 text-left font-black hover:opacity-90 sm:col-span-2">🔐 School ERP Login</button>
         </div>
         {socialEntries.length > 0 && (
           <div className="mt-6 flex gap-3">
@@ -397,7 +397,7 @@ const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
           </div>
         )}
       </div>
-      <div className="rounded-[2rem] bg-white p-8 text-gray-950"><h3 className="text-2xl font-black">Client Demo Checklist</h3><ul className="mt-6 space-y-4 text-gray-700">{['Landing page premium look ready', 'Admission inquiry WhatsApp connected', 'ERP demo login button visible', 'Mobile responsive design improved', 'SEO/PWA files already included'].map((x) => <li key={x} className="flex gap-3"><span className="text-green-600">✓</span><span className="font-semibold">{x}</span></li>)}</ul></div>
+      <div className="rounded-[2rem] bg-white p-8 text-gray-950"><h3 className="text-2xl font-black">Website & ERP Highlights</h3><ul className="mt-6 space-y-4 text-gray-700">{['Official website with admission inquiry', 'Admission inquiry WhatsApp connected', 'School ERP login available', 'Mobile responsive design', 'SEO friendly pages'].map((x) => <li key={x} className="flex gap-3"><span className="text-green-600">✓</span><span className="font-semibold">{x}</span></li>)}</ul></div>
     </div>
   </section>
   );
