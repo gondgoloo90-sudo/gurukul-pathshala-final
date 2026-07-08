@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { schoolConfig } from '../config/schoolData';
 import { isValidEmail } from '../lib/validators';
 import type { UserRole } from './types';
 import { roleLabels } from './erpData';
-import { loginRequest, requestOtp, saveSession, verifyOtp, type AuthUser } from './auth';
+import { loginRequest, loginWithGoogle, requestOtp, saveSession, verifyOtp, type AuthUser } from './auth';
+import { renderGoogleButton, type GoogleProfile } from './googleAuth';
 
 interface LoginPageProps {
   onLoginSuccess: (user: AuthUser) => void;
@@ -16,6 +17,7 @@ const roles: { role: UserRole; icon: string; description: string }[] = [
   { role: 'admin', icon: '🛡️', description: 'Manage school, fees, students and reports' },
   { role: 'teacher', icon: '👩‍🏫', description: 'Attendance, homework, marks and classes' },
   { role: 'student', icon: '🎓', description: 'Homework, results, attendance and fees' },
+  { role: 'parent', icon: '👨‍👩‍👧', description: "View your child's attendance, homework, marks and fees" },
 ];
 
 const BrandPanel = ({ onBackHome }: { onBackHome: () => void }) => (
@@ -50,6 +52,46 @@ const CardShell = ({ onBackHome, children }: { onBackHome: () => void; children:
     </div>
   </main>
 );
+
+const GoogleSignInSlot = ({
+  role,
+  onSuccess,
+  onFail,
+}: {
+  role: UserRole;
+  onSuccess: (user: AuthUser) => void;
+  onFail: (message: string) => void;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [notConfigured, setNotConfigured] = useState(false);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    setNotConfigured(false);
+    renderGoogleButton(
+      containerRef.current,
+      (profile: GoogleProfile) => {
+        const user = loginWithGoogle(profile, role);
+        saveSession(user, true);
+        onSuccess(user);
+      },
+      (message) => {
+        if (message === 'not-configured') setNotConfigured(true);
+        else onFail(message);
+      }
+    );
+  }, [role]);
+
+  if (notConfigured) {
+    return (
+      <div className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-center text-xs font-semibold text-slate-400">
+        Google Sign-In coming soon
+      </div>
+    );
+  }
+
+  return <div ref={containerRef} className="flex justify-center [&>div]:!w-full" />;
+};
 
 const LoginPage = ({ onLoginSuccess, onBackHome }: LoginPageProps) => {
   const [screen, setScreen] = useState<Screen>('role');
@@ -253,6 +295,12 @@ const LoginPage = ({ onLoginSuccess, onBackHome }: LoginPageProps) => {
                 {loading ? 'Signing in…' : `Login as ${roleLabels[selectedRole]}`}
               </button>
             </form>
+
+            <div className="my-5 flex items-center gap-3 text-xs font-black uppercase tracking-widest text-slate-300">
+              <div className="h-px flex-1 bg-slate-200" /> Or <div className="h-px flex-1 bg-slate-200" />
+            </div>
+
+            <GoogleSignInSlot role={selectedRole} onSuccess={onLoginSuccess} onFail={setError} />
 
             <div className="mt-5 rounded-2xl bg-slate-50 px-4 py-3 text-center text-xs text-slate-500 font-semibold">Trouble logging in? Contact your school admin office.</div>
           </CardShell>

@@ -15,8 +15,8 @@ export const schoolConfig = {
   // Update address, phone, email, WhatsApp number here
   contact: {
     address: "Gurukul Pathshala, Near Main Road, Varanasi, Uttar Pradesh, India",
-    phone: "+91 98765 43210",
-    whatsapp: "+91 98765 43210",
+    phone: "+91 82993 82504",
+    whatsapp: "+91 82993 82504",
     email: "info@gurukulpathshala.com",
     googleMapLink: "https://maps.google.com/?q=Varanasi,Uttar+Pradesh",
   },

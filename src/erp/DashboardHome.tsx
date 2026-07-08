@@ -57,6 +57,12 @@ const moduleHealthByRole: Record<UserRole, { label: string; value: number; statu
     { label: 'Result', value: 88, status: 'A grade' },
     { label: 'Fees', value: 100, status: 'No dues' },
   ],
+  parent: [
+    { label: "Child's Attendance", value: 92, status: 'Good' },
+    { label: 'Homework', value: 75, status: '2 pending' },
+    { label: 'Result', value: 88, status: 'A grade' },
+    { label: 'Fees', value: 60, status: 'Check status' },
+  ],
 };
 
 const pipelineByRole: Record<UserRole, { title: string; meta: string; icon: string }[]> = {
@@ -74,6 +80,11 @@ const pipelineByRole: Record<UserRole, { title: string; meta: string; icon: stri
     { title: 'Complete Math Homework', meta: 'Due tomorrow', icon: '📝' },
     { title: 'Science Project', meta: 'Submit file by Friday', icon: '🔬' },
     { title: 'Library Book Return', meta: 'Return tomorrow', icon: '📚' },
+  ],
+  parent: [
+    { title: 'Fee Due Reminder', meta: 'Clear before month end', icon: '💳' },
+    { title: 'Parent Teacher Meeting', meta: 'This week', icon: '👥' },
+    { title: "Check Child's Homework", meta: '2 pending items', icon: '📘' },
   ],
 };
 

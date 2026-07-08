@@ -1,9 +1,23 @@
 import { useEffect, useState } from 'react';
 import { schoolConfig } from './config/schoolData';
 import ErpApp from './erp/ErpApp';
+import { submitCallbackRequest, type CallQueryType } from './erp/ErpPages';
 import { useWebsiteSettings } from './hooks/useWebsiteSettings';
+import { useRevealOnScroll } from './hooks/useRevealOnScroll';
 
 type ButtonVariant = 'primary' | 'dark' | 'light' | 'outline';
+
+// Wraps a section (or block) so it gently fades + rises into place the
+// first time it scrolls into view. `delay` (ms) lets a row of cards
+// stagger slightly instead of all popping in at once.
+const Reveal = ({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) => {
+  const { ref, visible } = useRevealOnScroll<HTMLDivElement>();
+  return (
+    <div ref={ref} className={`reveal ${visible ? 'is-visible' : ''} ${className}`} style={visible ? { animationDelay: `${delay}ms` } : undefined}>
+      {children}
+    </div>
+  );
+};
 
 const Button = ({ children, href, onClick, variant = 'primary', className = '' }: { children: React.ReactNode; href?: string; onClick?: () => void; variant?: ButtonVariant; className?: string }) => {
   const styles: Record<ButtonVariant, string> = {
@@ -88,10 +102,12 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
         <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: `url(${branding.heroBackgroundImage})` }} />
       )}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.55),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.35),transparent_30%)]" />
+      <div className="opal-glow pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full sm:h-[520px] sm:w-[520px]" aria-hidden="true" />
+      <div className="opal-sheen pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full sm:h-[520px] sm:w-[520px]" aria-hidden="true" />
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '42px 42px' }} />
       <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div>
+          <div className="hero-fade-in">
             <div className="mb-6 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🚀 Admission Open 2026-27</div>
             <h1 className="text-4xl font-black leading-tight tracking-tight md:text-6xl lg:text-7xl">
               {homepage.heroTitle}
@@ -107,7 +123,7 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
               {stats.map(([value, label]) => <div key={label} className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur"><div className="text-3xl font-black text-yellow-300">{value}</div><div className="mt-1 text-xs font-semibold text-red-100">{label}</div></div>)}
             </div>
           </div>
-          <div className="relative">
+          <div className="relative hero-fade-in" style={{ animationDelay: '150ms' }}>
             <div className="absolute -inset-5 rounded-[2rem] bg-red-500/30 blur-3xl" />
             <div className="relative rounded-[2rem] border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur">
               <div className="rounded-[1.5rem] bg-white p-4 text-gray-950">
@@ -134,9 +150,9 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
 
 const TrustBar = () => (
   <section className="border-b border-gray-100 bg-white py-6">
-    <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 text-center md:grid-cols-4">
+    <Reveal className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 text-center md:grid-cols-4">
       {['Smart Classes', 'Digital Attendance', 'Online Fees', 'Parent Communication'].map((item) => <div key={item} className="rounded-2xl bg-gray-50 px-4 py-3 text-sm font-black text-gray-700">✓ {item}</div>)}
-    </div>
+    </Reveal>
   </section>
 );
 
@@ -154,9 +170,9 @@ const ErpModulesSection = () => {
     <section id="erp-modules" className="bg-gray-50 py-20">
       <div className="mx-auto max-w-7xl px-4">
         <SectionTitle eyebrow="ERP Modules" title="School management ko simple aur professional banaye" subtitle={homepage.featuresText} />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Reveal className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {modules.map(([icon, title, desc]) => <div key={title} className="rounded-[1.5rem] border border-gray-100 bg-white p-7 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"><div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-3xl">{icon}</div><h3 className="text-xl font-black text-gray-950">{title}</h3><p className="mt-3 leading-7 text-gray-600">{desc}</p></div>)}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -167,20 +183,20 @@ const AboutSection = () => {
   return (
   <section id="about" className="bg-white py-20">
     <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 lg:grid-cols-2">
-      <div>
+      <Reveal>
         <SectionTitle eyebrow="About" title="Education + Technology ka perfect combination" subtitle={homepage.aboutText} />
         <div className="grid gap-4 sm:grid-cols-2">
           {schoolConfig.whyChooseUs.map((item) => <div key={item.title} className="rounded-3xl bg-gray-50 p-5"><div className="text-3xl">{item.icon}</div><h3 className="mt-3 font-black text-gray-950">{item.title}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{item.description}</p></div>)}
         </div>
-      </div>
-      <div className="rounded-[2rem] bg-gradient-to-br from-red-600 to-red-800 p-8 text-white shadow-2xl">
+      </Reveal>
+      <Reveal delay={150} className="rounded-[2rem] bg-gradient-to-br from-red-600 to-red-800 p-8 text-white shadow-2xl">
         <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-100">Principal Message</p>
         <h3 className="mt-3 text-3xl font-black">{schoolConfig.principal.name}</h3>
         <p className="mt-5 leading-8 text-red-50">Hamari priority hai ki har student ko safe campus, quality teaching aur digital learning experience mile. Gurukul Pathshala traditional values aur modern education dono ko saath lekar chalti hai.</p>
         <div className="mt-8 grid grid-cols-3 gap-3 text-center">
           {['Safe Campus', 'Smart ERP', 'Modern Learning'].map((x) => <div key={x} className="rounded-2xl bg-white/10 p-4 text-sm font-bold">{x}</div>)}
         </div>
-      </div>
+      </Reveal>
     </div>
   </section>
   );
@@ -199,10 +215,11 @@ const AdmissionSection = () => {
       <div className="mx-auto max-w-7xl px-4">
         <SectionTitle eyebrow="Admission" title={schoolConfig.admission.heading} subtitle={schoolConfig.admission.description} />
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-5">
+          <Reveal className="space-y-5">
             <div className="rounded-[2rem] bg-white p-7 shadow-sm"><h3 className="text-2xl font-black">Admission Process</h3><ol className="mt-5 space-y-4">{schoolConfig.admission.process.map((step, i) => <li key={step} className="flex gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-black text-white">{i + 1}</span><span className="pt-1 font-semibold text-gray-700">{step}</span></li>)}</ol></div>
             <div className="rounded-[2rem] bg-gray-950 p-7 text-white"><h3 className="text-2xl font-black">Fee Snapshot</h3><div className="mt-5 space-y-3 text-sm">{Object.entries(schoolConfig.admission.fees).map(([k, v]) => <div key={k} className="flex justify-between border-b border-white/10 pb-3"><span className="capitalize text-gray-300">{k.replace(/([A-Z])/g, ' $1')}</span><b>{v}</b></div>)}</div></div>
-          </div>
+          </Reveal>
+          <Reveal delay={150}>
           <form onSubmit={submit} className="rounded-[2rem] bg-white p-7 shadow-xl">
             <h3 className="text-2xl font-black text-gray-950">Quick Admission Inquiry</h3><p className="mt-2 text-gray-600">Form submit karte hi WhatsApp inquiry ready ho jayegi.</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -214,8 +231,116 @@ const AdmissionSection = () => {
             <textarea placeholder="Message / Address" rows={5} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} className="mt-4 w-full rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
             <button className="mt-4 w-full rounded-2xl bg-red-600 px-6 py-4 font-black text-white hover:bg-red-700">Send Inquiry on WhatsApp</button>
           </form>
+          </Reveal>
         </div>
       </div>
+    </section>
+  );
+};
+
+const RequestCallbackModal = ({ onClose }: { onClose: () => void }) => {
+  const { contact } = useWebsiteSettings();
+  const [form, setForm] = useState({ name: '', phone: '', studentName: '', className: '', queryType: 'Admission' as CallQueryType, preferredTime: '', message: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitCallbackRequest(form);
+    setSubmitted(true);
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white/95 px-6 py-4 backdrop-blur">
+          <h3 className="text-xl font-black text-gray-950">Request a Callback</h3>
+          <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-100 font-black text-gray-600">×</button>
+        </div>
+        <div className="p-6">
+          {submitted ? (
+            <div className="py-6 text-center">
+              <div className="mb-4 text-5xl">✅</div>
+              <h4 className="text-xl font-black text-gray-950">Request Received!</h4>
+              <p className="mt-2 text-gray-600">Hamari team jald hi aapko call karegi. Emergency ho to seedha call karein:</p>
+              <a href={`tel:${contact.phone}`} className="mt-2 inline-block font-black text-red-600">📞 {contact.phone}</a>
+              <button onClick={onClose} className="mt-6 w-full rounded-2xl bg-red-600 px-6 py-3 font-black text-white hover:bg-red-700">Close</button>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="grid gap-4">
+              <p className="rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-blue-700">🤖 Ye request seedha school ke AI Call Center mein pahunchti hai aur staff turant follow-up karta hai.</p>
+              <input required placeholder="Parent / Student Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+              <input required type="tel" placeholder="Phone Number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input placeholder="Student Name" value={form.studentName} onChange={(e) => setForm({ ...form, studentName: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+                <select value={form.className} onChange={(e) => setForm({ ...form, className: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500">
+                  <option value="">Select Class</option>
+                  {schoolConfig.classes.map((cls) => <option key={cls.name}>{cls.name}</option>)}
+                </select>
+              </div>
+              <select required value={form.queryType} onChange={(e) => setForm({ ...form, queryType: e.target.value as CallQueryType })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500">
+                {(['Admission', 'Fees', 'Appointment', 'Complaint', 'Homework', 'Result', 'Transport', 'Other'] as CallQueryType[]).map((q) => <option key={q} value={q}>{q}</option>)}
+              </select>
+              <input placeholder="Preferred Callback Time (e.g. Tomorrow 10 AM)" value={form.preferredTime} onChange={(e) => setForm({ ...form, preferredTime: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+              <textarea placeholder="Message (optional)" rows={4} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="rounded-2xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-500" />
+              <button className="mt-2 w-full rounded-2xl bg-red-600 px-6 py-4 font-black text-white hover:bg-red-700">Submit Request</button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AICallAssistantSection = () => {
+  const { contact } = useWebsiteSettings();
+  const [showCallback, setShowCallback] = useState(false);
+  const features: [string, string, string][] = [
+    ['🎓', 'Admission Help', '24/7 admission-related sawaalon ke jawab'],
+    ['💳', 'Fee Query', 'Fee status aur payment reminders'],
+    ['📅', 'Appointment Booking', 'Principal / Teacher se milne ka time book karein'],
+    ['📢', 'Complaint Support', 'Apni samasya turant darj karayein'],
+  ];
+  return (
+    <section className="bg-gray-950 py-20 text-white">
+      <div className="mx-auto max-w-7xl px-4">
+        <Reveal>
+          <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">🤖 AI Call Assistant • Active 24/7</div>
+              <h2 className="mt-5 text-3xl font-black md:text-5xl">Hamara AI Assistant hamesha call ke liye ready hai</h2>
+              <p className="mt-5 max-w-xl leading-8 text-gray-300">Admission, fees, appointment ya complaint — kisi bhi query ke liye humein call karein. AI voice assistant turant samajh kar madad karega, aur zaroorat pade to seedha staff se connect kar dega.</p>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                {features.map(([icon, title, desc]) => (
+                  <div key={title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <span className="text-2xl">{icon}</span>
+                    <h4 className="mt-2 font-black">{title}</h4>
+                    <p className="mt-1 text-sm text-gray-400">{desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                <a href={`tel:${contact.phone}`} className="rounded-2xl bg-red-600 px-6 py-4 text-center font-black hover:bg-red-700">📞 Call Now</a>
+                <button onClick={() => setShowCallback(true)} className="rounded-2xl border-2 border-white/30 px-6 py-4 font-black hover:bg-white/10">☎️ Request Callback</button>
+              </div>
+              <p className="mt-5 text-xs text-gray-400">🔒 Yeh AI Assistant hai, insaan nahi. Recording se pehle consent poocha jata hai. Kabhi bhi "mujhe staff se baat karni hai" bolkar seedha human se connect ho sakte hain — emergency ho to hamesha seedha call karein.</p>
+            </div>
+            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-sm font-black text-green-400"><span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />AI Assistant Active</span>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold">🎙️ Listening</span>
+              </div>
+              <div className="mt-6 space-y-3">
+                <div className="rounded-2xl bg-white/10 p-4"><p className="text-xs font-bold text-gray-400">AI</p><p className="mt-1 text-sm">Namaste! Gurukul Pathshala AI Assistant bol raha hoon. Aapki kaise madad kar sakta hoon?</p></div>
+                <div className="rounded-2xl bg-red-600/20 p-4"><p className="text-xs font-bold text-red-300">Parent</p><p className="mt-1 text-sm">Mujhe admission ke baare mein jaankari chahiye.</p></div>
+                <div className="rounded-2xl bg-white/10 p-4"><p className="text-xs font-bold text-gray-400">AI</p><p className="mt-1 text-sm">Zaroor! Main aapko Admission Office se turant connect ya callback book kar sakta hoon.</p></div>
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3 text-center text-sm font-black">
+                <div className="rounded-2xl bg-white/10 py-3">⏱️ Avg. Response: 12s</div>
+                <div className="rounded-2xl bg-white/10 py-3">✅ AI Disclosed</div>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+      {showCallback && <RequestCallbackModal onClose={() => setShowCallback(false)} />}
     </section>
   );
 };
@@ -224,9 +349,9 @@ const FacilitiesSection = () => (
   <section id="facilities" className="bg-white py-20">
     <div className="mx-auto max-w-7xl px-4">
       <SectionTitle eyebrow="Facilities" title="Parent trust badhane wale school features" subtitle="Website par clear facilities dikhne se school ka professional impression strong hota hai." />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <Reveal className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {schoolConfig.facilities.slice(0, 9).map((f) => <div key={f.title} className="group rounded-[1.5rem] bg-gray-50 p-6 transition-all hover:bg-red-600 hover:text-white"><div className="text-4xl">{f.icon}</div><h3 className="mt-4 text-xl font-black">{f.title}</h3><p className="mt-3 leading-7 text-gray-600 group-hover:text-red-50">{f.description}</p></div>)}
-      </div>
+      </Reveal>
     </div>
   </section>
 );
@@ -242,9 +367,9 @@ const GallerySection = () => {
           {gallery.banners.map((banner) => <img key={banner.id} src={banner.src} alt={banner.alt} className="h-32 w-auto shrink-0 rounded-2xl object-cover shadow-sm" />)}
         </div>
       )}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <Reveal className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {gallery.images.slice(0, 8).map((img) => <div key={img.id} className="group relative aspect-square overflow-hidden rounded-[1.5rem] bg-red-100 shadow-sm"><img src={img.src} alt={img.alt} className="h-full w-full object-cover transition-transform group-hover:scale-110" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-sm font-bold text-white">{img.alt}</div></div>)}
-      </div>
+      </Reveal>
     </div>
   </section>
   );
@@ -260,9 +385,9 @@ const TestimonialsSection = () => {
     <section className="bg-white py-20">
       <div className="mx-auto max-w-7xl px-4">
         <SectionTitle eyebrow="Testimonials" title="Parents aur school team ke liye built" />
-        <div className="grid gap-6 md:grid-cols-3">
+        <Reveal className="grid gap-6 md:grid-cols-3">
           {testimonials.map(([role, text]) => <div key={role} className="rounded-[1.5rem] border bg-white p-7 shadow-sm"><div className="text-3xl text-yellow-400">★★★★★</div><p className="mt-4 leading-8 text-gray-700">“{text}”</p><p className="mt-5 font-black text-red-600">{role}</p></div>)}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -274,9 +399,9 @@ const FAQSection = () => {
     <section className="bg-gray-50 py-20">
       <div className="mx-auto max-w-4xl px-4">
         <SectionTitle eyebrow="FAQ" title="Common questions" />
-        <div className="space-y-4">
+        <Reveal className="space-y-4">
           {schoolConfig.faq.slice(0, 6).map((f, i) => <div key={f.question} className="overflow-hidden rounded-3xl bg-white shadow-sm"><button onClick={() => setOpen(open === i ? -1 : i)} className="flex w-full items-center justify-between px-6 py-5 text-left font-black text-gray-950"><span>{f.question}</span><span>{open === i ? '−' : '+'}</span></button>{open === i && <p className="px-6 pb-6 leading-7 text-gray-600">{f.answer}</p>}</div>)}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -286,7 +411,7 @@ const FAQSection = () => {
 const NoticeEventsSection = () => (
   <section className="bg-white py-20">
     <div className="mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-2">
-      <div className="rounded-[2rem] border border-gray-100 bg-gray-50 p-7">
+      <Reveal className="rounded-[2rem] border border-gray-100 bg-gray-50 p-7">
         <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-600">Notice Board</p>
         <h2 className="mt-3 text-3xl font-black text-gray-950">Latest school updates</h2>
         <div className="mt-6 space-y-4">
@@ -300,8 +425,8 @@ const NoticeEventsSection = () => (
             </div>
           ))}
         </div>
-      </div>
-      <div className="rounded-[2rem] border border-gray-100 bg-gray-950 p-7 text-white">
+      </Reveal>
+      <Reveal delay={150} className="rounded-[2rem] border border-gray-100 bg-gray-950 p-7 text-white">
         <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Events</p>
         <h2 className="mt-3 text-3xl font-black">Upcoming activities</h2>
         <div className="mt-6 space-y-4">
@@ -315,7 +440,7 @@ const NoticeEventsSection = () => (
             </div>
           ))}
         </div>
-      </div>
+      </Reveal>
     </div>
   </section>
 );
@@ -330,7 +455,7 @@ const PricingSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
     <section id="pricing" className="bg-gray-50 py-20">
       <div className="mx-auto max-w-7xl px-4">
         <SectionTitle eyebrow="Our Platform" title="School Website aur School ERP — ek hi jagah" subtitle="Gurukul Pathshala apni official website aur School ERP dono is ek hi professional platform par chalata hai." />
-        <div className="grid gap-6 lg:grid-cols-3">
+        <Reveal className="grid gap-6 lg:grid-cols-3">
           {plans.map(([name, desc, features], index) => (
             <div key={name as string} className={`rounded-[2rem] border p-7 shadow-sm ${index === 1 ? 'border-red-200 bg-white shadow-xl ring-4 ring-red-50' : 'border-gray-100 bg-white'}`}>
               {index === 1 && <span className="mb-4 inline-flex rounded-full bg-red-600 px-4 py-2 text-xs font-black text-white">Most Used</span>}
@@ -344,7 +469,7 @@ const PricingSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
               </button>
             </div>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -353,7 +478,7 @@ const PricingSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
 const FinalCTA = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
   <section className="bg-white py-20">
     <div className="mx-auto max-w-7xl px-4">
-      <div className="rounded-[2rem] bg-gradient-to-r from-red-600 via-red-700 to-gray-950 p-8 text-white shadow-2xl md:p-12">
+      <Reveal className="rounded-[2rem] bg-gradient-to-r from-red-600 via-red-700 to-gray-950 p-8 text-white shadow-2xl md:p-12">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-100">Admission Open 2026-27</p>
@@ -365,7 +490,7 @@ const FinalCTA = ({ onOpenLogin }: { onOpenLogin: () => void }) => (
             <Button href="#contact" variant="outline">Contact Now</Button>
           </div>
         </div>
-      </div>
+      </Reveal>
     </div>
   </section>
 );
@@ -378,7 +503,7 @@ const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
   return (
   <section id="contact" className="bg-gray-950 py-20 text-white">
     <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2">
-      <div>
+      <Reveal>
         <p className="text-sm font-bold uppercase tracking-[0.25em] text-red-300">Contact</p>
         <h2 className="mt-3 text-4xl font-black md:text-5xl">Admission ya school visit ke liye contact karein</h2>
         <p className="mt-5 leading-8 text-gray-300">{contact.address}</p>
@@ -396,8 +521,8 @@ const ContactSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
             ))}
           </div>
         )}
-      </div>
-      <div className="rounded-[2rem] bg-white p-8 text-gray-950"><h3 className="text-2xl font-black">Website & ERP Highlights</h3><ul className="mt-6 space-y-4 text-gray-700">{['Official website with admission inquiry', 'Admission inquiry WhatsApp connected', 'School ERP login available', 'Mobile responsive design', 'SEO friendly pages'].map((x) => <li key={x} className="flex gap-3"><span className="text-green-600">✓</span><span className="font-semibold">{x}</span></li>)}</ul></div>
+      </Reveal>
+      <Reveal delay={150} className="rounded-[2rem] bg-white p-8 text-gray-950"><h3 className="text-2xl font-black">Website & ERP Highlights</h3><ul className="mt-6 space-y-4 text-gray-700">{['Official website with admission inquiry', 'Admission inquiry WhatsApp connected', 'School ERP login available', 'Mobile responsive design', 'SEO friendly pages'].map((x) => <li key={x} className="flex gap-3"><span className="text-green-600">✓</span><span className="font-semibold">{x}</span></li>)}</ul></Reveal>
     </div>
   </section>
   );
@@ -450,6 +575,8 @@ function App() {
     };
     setMeta('meta[name="description"]', 'description', seo.metaDescription);
     setMeta('meta[name="keywords"]', 'keywords', seo.keywords);
+    setMeta('meta[property="og:title"]', 'og:title', seo.title);
+    setMeta('meta[property="og:description"]', 'og:description', seo.metaDescription);
     if (seo.ogImage) setMeta('meta[property="og:image"]', 'og:image', seo.ogImage);
 
     if (branding.faviconUrl) {
@@ -462,7 +589,7 @@ function App() {
   const openLogin = () => { window.location.hash = 'login'; setActiveView('erp'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const openWebsite = () => { window.location.hash = 'home'; setActiveView('website'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   if (activeView === 'erp') return <ErpApp onBackHome={openWebsite} />;
-  return <div className="min-h-screen bg-white"><Header onOpenLogin={openLogin} /><main><HeroSection onOpenLogin={openLogin} /><TrustBar /><ErpModulesSection /><AboutSection /><AdmissionSection /><NoticeEventsSection /><FacilitiesSection /><GallerySection /><TestimonialsSection /><PricingSection onOpenLogin={openLogin} /><FAQSection /><FinalCTA onOpenLogin={openLogin} /><ContactSection onOpenLogin={openLogin} /></main><Footer onOpenLogin={openLogin} /><FloatingButtons /></div>;
+  return <div className="min-h-screen bg-white"><Header onOpenLogin={openLogin} /><main><HeroSection onOpenLogin={openLogin} /><TrustBar /><ErpModulesSection /><AboutSection /><AdmissionSection /><AICallAssistantSection /><NoticeEventsSection /><FacilitiesSection /><GallerySection /><TestimonialsSection /><PricingSection onOpenLogin={openLogin} /><FAQSection /><FinalCTA onOpenLogin={openLogin} /><ContactSection onOpenLogin={openLogin} /></main><Footer onOpenLogin={openLogin} /><FloatingButtons /></div>;
 }
 
 export default App;

@@ -26,6 +26,7 @@ const MOCK_ACCOUNTS: MockAccount[] = [
   { id: 'admin-01', email: 'admin@gurukul.com', password: '123456', name: 'School Admin', role: 'admin' },
   { id: 'teacher-01', email: 'teacher@gurukul.com', password: '123456', name: 'Anita Sharma', role: 'teacher' },
   { id: 'student-01', email: 'student@gurukul.com', password: '123456', name: 'Rohan Verma', role: 'student' },
+  { id: 'parent-01', email: 'parent@gurukul.com', password: '123456', name: 'Rajesh Sharma', role: 'parent' },
 ];
 
 const SESSION_KEY = 'gurukul-auth-session';
@@ -96,6 +97,24 @@ export async function verifyOtp(otp: string): Promise<OtpResult> {
   return { success: true, message: 'OTP verified successfully.' };
 }
 
+/**
+ * Builds a session user from a verified Google profile + the role the
+ * person picked on the role-selection screen.
+ *
+ * BACKEND TODO: once a real backend exists, send the Google credential
+ * (JWT) to the server, verify it there, look up (or create) the matching
+ * account, and return the *server's* user record instead of trusting the
+ * client-decoded profile below.
+ */
+export function loginWithGoogle(profile: { sub: string; email: string; name: string }, role: UserRole): AuthUser {
+  return {
+    id: `google-${profile.sub}`,
+    email: profile.email,
+    name: profile.name,
+    role,
+  };
+}
+
 // ---------------------------------------------------------------
 // Session management (localStorage by default, sessionStorage for
 // "don't remember me" style short sessions). Structure kept simple
@@ -114,7 +133,7 @@ export function getSession(): AuthUser | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as AuthUser;
-    if (parsed && (parsed.role === 'admin' || parsed.role === 'teacher' || parsed.role === 'student')) {
+    if (parsed && (parsed.role === 'admin' || parsed.role === 'teacher' || parsed.role === 'student' || parsed.role === 'parent')) {
       return parsed;
     }
     return null;

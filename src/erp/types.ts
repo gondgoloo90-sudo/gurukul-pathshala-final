@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'teacher' | 'student';
+export type UserRole = 'admin' | 'teacher' | 'student' | 'parent';
 
 export type ErpPage =
   | 'dashboard'
@@ -6,8 +6,10 @@ export type ErpPage =
   | 'admission'
   | 'promote'
   | 'teachers'
+  | 'staff'
   | 'attendance'
   | 'fees'
+  | 'scholarships'
   | 'examination'
   | 'library'
   | 'transport'
@@ -15,12 +17,17 @@ export type ErpPage =
   | 'documents'
   | 'settings'
   | 'classes'
+  | 'class-section'
+  | 'subjects'
+  | 'timetable'
   | 'homework'
   | 'marks'
   | 'messages'
   | 'calendar'
   | 'result'
   | 'profile'
+  | 'parent-child'
+  | 'ai-call-center'
   | 'website-settings';
 
 export interface DashboardStat {

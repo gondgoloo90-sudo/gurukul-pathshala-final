@@ -1,6 +1,36 @@
+## AI Call Agent — AI Call Assistant + AI Call Center (this update)
+
+### Added
+- **Public website**: "AI Call Assistant" section (after Admission) — explains 24/7 admission help, fee query, appointment booking and complaint support. "Call Now" (`tel:`) and "Request Callback" (modal form) buttons.
+- **Request Callback form**: Name, Phone, Student Name, Class, Query Type (Admission/Fees/Appointment/Complaint/Homework/Result/Transport/Other), Preferred Callback Time, Message. Submits directly into the shared ERP store (`submitCallbackRequest` in `src/erp/ErpPages.tsx`) so it appears instantly in Admin → AI Call Center, even though the public site and ERP are separate mounts.
+- **New ERP module "AI Call Center"** (`ai-call-center` page, all roles):
+  - **Admin**: full dashboard — Total Calls, Missed Calls, Callback Requests, Appointments Booked, Complaints, Resolved Issues. Searchable/filterable call log table (status, priority, query type). Call Detail modal with AI-generated summary, sentiment, urgency, next action, full transcript, notes, and actions: Assign, Schedule Appointment, Mark Resolved, Escalate to Human Staff, Call Back (`tel:`), Send WhatsApp (`wa.me`).
+  - **Teacher/Staff**: same dashboard, auto-filtered to calls/appointments assigned to them only.
+  - **Parent/Student**: simplified "My Calls & Appointments" view — issue status, appointment status, response/next-step message only (no internal admin notes).
+- **Appointment booking**: department/person (Principal, Admission Office, Class Teacher, Accounts, Transport Incharge), date, time, reason, status — attached to the call log and visible to the parent.
+- **Safety & privacy UI**: "This is an AI Assistant, not a human" disclosure on every call detail view and on the public section; recording status badge (consent-based); manual "Escalate to Human Staff" handoff button; emergency guidance to call the school directly.
+- Sample/demo call log data seeded (4 realistic calls covering Fees, Complaint, Appointment, Missed Call) so the dashboard isn't empty on first load.
+
+### Backend-readiness notes (frontend + shared demo store today)
+This is a fully working **frontend UI on a shared localStorage-backed demo store** — no real phone/AI/WhatsApp/calendar backend is connected yet. Every integration point is marked `BACKEND TODO` in code:
+- **Telephony**: swap the demo call logging for a real Twilio / Exotel / Knowlarity webhook that creates call log entries server-side.
+- **AI conversation**: connect the call audio to OpenAI/Gemini (speech-to-text → LLM → text-to-speech) on the backend; the `summary`, `sentiment`, `urgency`, `transcript` fields are already shaped to receive AI-generated output.
+- **WhatsApp follow-up**: current "Send WhatsApp" opens `wa.me` manually; replace with WhatsApp Business API for automated sends.
+- **Calendar**: appointment fields (`department`, `date`, `time`) are ready to sync to Google Calendar via API once a backend exists.
+- **Database**: replace `localStorage` (`STORE_KEY` in `src/erp/ErpPages.tsx`) with Supabase/Firebase so data persists across devices, not just one browser.
+
+### Modified / Added files
+- `src/erp/ErpPages.tsx` — call log types, sample data, `submitCallbackRequest`, `AICallCenterPage` and related components (AppointmentForm, AssignForm, CallDetailModal, AdminCallCenter, MyCallsView).
+- `src/erp/types.ts` — added `ai-call-center` page type.
+- `src/erp/DashboardShell.tsx` — added AI Call Center nav item to Admin, Teacher, Student and Parent menus.
+- `src/App.tsx` — added `AICallAssistantSection` and `RequestCallbackModal` to the public website.
+
+### Verified
+- `npx tsc --noEmit` — 0 errors.
+- `npm run build` — production build passes.
+- Existing public website, Admin, Teacher, Student and Parent portals unaffected and confirmed still working.
 
 
-## Day 4 – Backend Ready Enterprise Update
 
 - Added API service layer for future Firebase/Supabase/REST backend.
 - Added validation utility helpers.
