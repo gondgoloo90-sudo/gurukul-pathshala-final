@@ -57,18 +57,43 @@
   0%   { transform: translate(-20%, -20%) rotate(0deg); }
   100% { transform: translate(-20%, -20%) rotate(360deg); }
 }
+@keyframes opal-glint {
+  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+  50%      { opacity: 0.9;  transform: scale(1.15); }
+}
 
 .opal-glow {
   background:
     conic-gradient(from 0deg,
       var(--site-primary) 0deg,
-      #fbbf24 80deg,
-      #7f1d1d 160deg,
-      var(--site-secondary) 220deg,
+      #fbbf24 60deg,
+      #34d399 120deg,
+      #38bdf8 180deg,
+      #a78bfa 240deg,
       var(--site-primary) 300deg,
       #fbbf24 360deg);
-  filter: blur(40px);
+  filter: blur(55px) saturate(1.4);
+  opacity: 0.65;
   animation: opal-morph 16s ease-in-out infinite, opal-shimmer 9s ease-in-out infinite;
+}
+
+/* A sharper, less-blurred inner layer so the shape reads as a glossy
+   gem rather than just a hazy glow — this is what makes it look
+   "chamkeela" (shiny) instead of a soft blob. */
+.opal-core {
+  background:
+    conic-gradient(from 40deg,
+      var(--site-primary) 0deg,
+      #fde68a 55deg,
+      #6ee7b7 115deg,
+      #7dd3fc 175deg,
+      #c4b5fd 235deg,
+      var(--site-primary) 300deg,
+      #fde68a 360deg);
+  filter: blur(10px) saturate(1.5) brightness(1.15);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  animation: opal-morph 16s ease-in-out infinite reverse, opal-shimmer 7s ease-in-out infinite;
 }
 
 .opal-sheen {
@@ -77,13 +102,21 @@
   mix-blend-mode: screen;
 }
 
+/* Bright glassy sparkle — like light catching the surface of a gem. */
+.opal-glint {
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 30%, transparent 70%);
+  filter: blur(2px);
+  mix-blend-mode: screen;
+  animation: opal-glint 4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal.is-visible, .hero-fade-in {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
-  .opal-glow, .opal-sheen {
+  .opal-glow, .opal-core, .opal-sheen, .opal-glint {
     animation: none !important;
   }
 }

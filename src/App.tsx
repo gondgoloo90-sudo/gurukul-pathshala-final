@@ -101,9 +101,11 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
       {branding.heroBackgroundImage && (
         <div className="absolute inset-0 bg-cover bg-center opacity-40" style={{ backgroundImage: `url(${branding.heroBackgroundImage})` }} />
       )}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(220,38,38,0.55),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.35),transparent_30%)]" />
-      <div className="opal-glow pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full sm:h-[520px] sm:w-[520px]" aria-hidden="true" />
-      <div className="opal-sheen pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full sm:h-[520px] sm:w-[520px]" aria-hidden="true" />
+      <div className="opal-glow pointer-events-none absolute left-1/2 top-[-180px] h-[560px] w-[560px] -translate-x-1/2 rounded-full sm:h-[680px] sm:w-[680px]" aria-hidden="true" />
+      <div className="opal-core pointer-events-none absolute left-1/2 top-[-180px] h-[560px] w-[560px] -translate-x-1/2 rounded-full sm:h-[680px] sm:w-[680px]" aria-hidden="true" />
+      <div className="opal-sheen pointer-events-none absolute left-1/2 top-[-180px] h-[560px] w-[560px] -translate-x-1/2 rounded-full sm:h-[680px] sm:w-[680px]" aria-hidden="true" />
+      <div className="opal-glint pointer-events-none absolute left-[calc(50%-120px)] top-[-40px] h-24 w-24 rounded-full sm:h-32 sm:w-32" aria-hidden="true" />
+      <div className="opal-glint pointer-events-none absolute left-[calc(50%+80px)] top-[80px] h-16 w-16 rounded-full sm:h-20 sm:w-20" style={{ animationDelay: '2s' }} aria-hidden="true" />
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '42px 42px' }} />
       <div className="relative mx-auto max-w-7xl px-4 py-20 md:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
@@ -132,13 +134,13 @@ const HeroSection = ({ onOpenLogin }: { onOpenLogin: () => void }) => {
                   <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">Online</span>
                 </div>
                 <div className="grid gap-3 py-4 sm:grid-cols-2">
-                  {['Admissions', 'Attendance', 'Fees', 'Report Cards'].map((item, i) => <div key={item} className="rounded-2xl bg-gray-50 p-4"><div className="text-2xl">{['📝','✅','💳','📊'][i]}</div><p className="mt-2 font-black">{item}</p><p className="text-sm text-gray-500">Active module</p></div>)}
+                  {['Admissions', 'Attendance', 'Fees', 'Report Cards'].map((item, i) => <button key={item} onClick={onOpenLogin} className="rounded-2xl bg-gray-50 p-4 text-left transition-transform hover:-translate-y-0.5 hover:bg-gray-100"><div className="text-2xl">{['📝','✅','💳','📊'][i]}</div><p className="mt-2 font-black">{item}</p><p className="text-sm text-gray-500">Active module</p></button>)}
                 </div>
-                <div className="rounded-2xl bg-gradient-to-r from-red-600 to-red-700 p-5 text-white">
+                <button onClick={onOpenLogin} className="w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-700 p-5 text-left text-white transition-transform hover:-translate-y-0.5 hover:shadow-xl">
                   <p className="text-sm font-bold text-red-100">School Login</p>
                   <p className="mt-1 text-xl font-black">Admin • Teacher • Student</p>
                   <p className="mt-2 text-sm text-red-100">Gurukul Pathshala School ERP.</p>
-                </div>
+                </button>
               </div>
             </div>
           </div>
